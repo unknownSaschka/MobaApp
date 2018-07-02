@@ -25,5 +25,7 @@ public class StartStopButtonListener implements View.OnClickListener{
         }
         Toast.makeText(_activity, "Server wird gestartet", Toast.LENGTH_SHORT).show();
         _activity.startServer();
+
+        _activity.TryToStartCaptureService();
     }
 }
