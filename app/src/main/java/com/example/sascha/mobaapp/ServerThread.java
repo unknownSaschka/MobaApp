@@ -30,15 +30,19 @@ public class ServerThread extends Thread {
 
         try {
             while(true) {
-                Log.i("ServerThread", "Wartet...");
+                if(Debug.InDebugging) {
+                    Log.i("ServerThread", "Wartet...");
+                }
                 socket = httpSocket.accept();
                 if (socket == null || httpSocket == null) return;
                 HttpResponseThread responseThread = new HttpResponseThread(socket);
                 responseThread.start();
             }
 
-        } catch (Exception e){
-            Log.i("ServerThread","In der Exception");
+        } catch (Exception e) {
+            if(Debug.InDebugging){
+                Log.i("ServerThread", "In der Exception");
+            }
             closeServer(socket);
         }
     }
@@ -51,9 +55,13 @@ public class ServerThread extends Thread {
             if(socket.getInputStream() != null){
                 socket.shutdownInput();
             }
-            Log.i("ServerThread","Server wurde geschlossen");
+            if(Debug.InDebugging) {
+                Log.i("ServerThread", "Server wurde geschlossen");
+            }
         } catch (Exception e) {
-            Log.i("ServerThread","Server wurde durch Exception geschlossen");
+            if(Debug.InDebugging) {
+                Log.i("ServerThread", "Server wurde durch Exception geschlossen");
+            }
         }
     }
 }

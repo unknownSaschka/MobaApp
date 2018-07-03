@@ -17,6 +17,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -38,11 +39,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.content.Intent;
 
-/*
-import org.red5.server.plugin.Red5Plugin;
-import org.red5.server.stream.ServerStream;
-import org.red5.spring.Red5ApplicationContext;
-*/
 //TODO Besser auf IP-Addressen vergleichen
 
 public class MainActivity extends AppCompatActivity {
@@ -65,10 +61,14 @@ public class MainActivity extends AppCompatActivity {
 
         //Prüfe auf Permissions für Internet
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED){
-             Log.i("Main", "Keine Perms");
+            if(Debug.InDebugging) {
+                Log.i("Main", "Keine Perms");
+            }
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, INET_PERMS);
         } else {
-            Log.i("Main", "Hat Perms");
+            if(Debug.InDebugging) {
+                Log.i("Main", "Hat Perms");
+            }
         }
 
         //Sachen für Toolbar
@@ -90,7 +90,9 @@ public class MainActivity extends AppCompatActivity {
         try {
             httpSocket = new ServerSocket(HttpServerPort);
         } catch (Exception e){
-
+            if(Debug.InDebugging){
+                Log.d("HttpServer", "Could not Start.");
+            }
         }
         if(httpSocket == null) return;
         thread = new ServerThread(httpSocket);
@@ -214,10 +216,13 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == REQUEST_CODE_SCREEN_CAPTURE){
             if(resultCode == Activity.RESULT_OK){
-                startService(new Intent(getApplicationContext(), CaptureService.class).putExtra("EXTRA_Intent", data));
+                Context blarg = getApplicationContext();
+                startService(new Intent(blarg, CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
             }
             else{
-                Log.d("BeforeServiceStarting", "Request failed.");
+                if(Debug.InDebugging) {
+                    Log.d("BeforeServiceStarting", "Request failed.");
+                }
             }
         }
     }
@@ -230,11 +235,15 @@ public class MainActivity extends AppCompatActivity {
         MediaProjectionManager temp = null;
         //Result checking in callback methode onActivityResult()
         try {
-            Log.d("BeforeServiceStart","Now trying to get Mediamanager.");
+            if(Debug.InDebugging) {
+                Log.d("BeforeServiceStart", "Now trying to get Mediamanager.");
+            }
             temp = (MediaProjectionManager) getSystemService(getApplicationContext().MEDIA_PROJECTION_SERVICE);
             startActivityForResult(temp.createScreenCaptureIntent(), MainActivity.REQUEST_CODE_SCREEN_CAPTURE);
         } catch (Exception ex) {
-            Log.d("BeforeServiceStart",ex.getMessage());
+            if(Debug.InDebugging) {
+                Log.d("BeforeServiceStart", ex.getMessage());
+            }
         }
     }
 }
