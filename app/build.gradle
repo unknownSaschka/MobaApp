@@ -22,16 +22,12 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
-    implementation 'org.red5:red5-parent:1.0.10-M8'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
     implementation files('libs/core-3.3.0.jar')
-    compile 'org.red5:red5-parent:1.0.10-M8'
     compile 'com.android.support:design:26.1.0'
-    implementation files('libs/red5-server-1.0.10-M8.jar')
-    implementation files('libs/red5-service-1.0.10-M8.jar')
 }
 
 configurations.all {
