@@ -133,6 +133,9 @@ public class MainActivity extends AppCompatActivity {
         ipAddressText.setText(ipAddress + "");
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStart);
+
+        ImageView qr = (ImageView) findViewById(R.id.QRImage);
+        qr.setImageDrawable(null);
     }
 
     public String getIpAddr() {
