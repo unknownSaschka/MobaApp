@@ -17,9 +17,12 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -34,10 +37,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
 
-import org.red5.server.plugin.Red5Plugin;
-import org.red5.server.stream.ServerStream;
-import org.red5.spring.Red5ApplicationContext;
 //TODO Besser auf IP-Addressen vergleichen
 
 public class MainActivity extends AppCompatActivity {
@@ -49,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
     ServerThread thread;
     String ipAddress;
 
+    public CaptureService _CaptureService = null;
+    public static final int REQUEST_CODE_SCREEN_CAPTURE = 69;
+
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,14 +61,15 @@ public class MainActivity extends AppCompatActivity {
 
         //Prüfe auf Permissions für Internet
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED){
-             Log.i("Main", "Keine Perms");
+            if(Debug.InDebugging) {
+                Log.i("Main", "Keine Perms");
+            }
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, INET_PERMS);
-
         } else {
-            Log.i("Main", "Hat Perms");
+            if(Debug.InDebugging) {
+                Log.i("Main", "Hat Perms");
+            }
         }
-
-
 
         //Sachen für Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -85,7 +90,9 @@ public class MainActivity extends AppCompatActivity {
         try {
             httpSocket = new ServerSocket(HttpServerPort);
         } catch (Exception e){
-
+            if(Debug.InDebugging){
+                Log.d("HttpServer", "Could not Start.");
+            }
         }
         if(httpSocket == null) return;
         thread = new ServerThread(httpSocket);
@@ -106,8 +113,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startStream(){
-        ServerStream stream = new ServerStream();
-        stream.start();
+        //ServerStream stream = new ServerStream();
+        //stream.start();
     }
 
     public void stopServer(){
@@ -205,10 +212,40 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == REQUEST_CODE_SCREEN_CAPTURE){
+            if(resultCode == Activity.RESULT_OK){
+                Context blarg = getApplicationContext();
+                startService(new Intent(blarg, CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
+            }
+            else{
+                if(Debug.InDebugging) {
+                    Log.d("BeforeServiceStarting", "Request failed.");
+                }
+            }
+        }
+    }
+
     public boolean getHTTPServerActive(){
         return httpServerActive;
     }
 
+    public void TryToStartCaptureService(){
+        MediaProjectionManager temp = null;
+        //Result checking in callback methode onActivityResult()
+        try {
+            if(Debug.InDebugging) {
+                Log.d("BeforeServiceStart", "Now trying to get Mediamanager.");
+            }
+            temp = (MediaProjectionManager) getSystemService(getApplicationContext().MEDIA_PROJECTION_SERVICE);
+            startActivityForResult(temp.createScreenCaptureIntent(), MainActivity.REQUEST_CODE_SCREEN_CAPTURE);
+        } catch (Exception ex) {
+            if(Debug.InDebugging) {
+                Log.d("BeforeServiceStart", ex.getMessage());
+            }
+        }
+    }
 }
 
 
