@@ -18,9 +18,12 @@ public class ServerThread extends Thread {
 
 
     ServerSocket httpSocket = null;
+    String html;
 
-    public ServerThread(ServerSocket httpSocket){
+    public ServerThread(ServerSocket httpSocket, String html){
+
         this.httpSocket = httpSocket;
+        this.html = html;
     }
 
     @Override
@@ -35,7 +38,7 @@ public class ServerThread extends Thread {
                 }
                 socket = httpSocket.accept();
                 if (socket == null || httpSocket == null) return;
-                HttpResponseThread responseThread = new HttpResponseThread(socket);
+                HttpResponseThread responseThread = new HttpResponseThread(socket, html);
                 responseThread.start();
             }
 

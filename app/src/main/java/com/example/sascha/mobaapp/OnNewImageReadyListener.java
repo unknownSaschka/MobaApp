@@ -14,12 +14,12 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
             _Image = _ImageReader.acquireLatestImage();
             _Image.close();
             if(Debug.InDebugging){
-                Log.d("ImageReader", "Here should be an Image.");
+                //Log.d("ImageReader", "Here should be an Image.");
             }
         }
         catch(Exception e){
             if(Debug.InDebugging){
-                Log.d("ImageReader", "Could not read Image.");
+                //Log.d("ImageReader", "Could not read Image.");
             }
         }
 
