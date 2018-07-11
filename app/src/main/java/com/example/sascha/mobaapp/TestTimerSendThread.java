@@ -15,7 +15,7 @@ public class TestTimerSendThread extends Thread{
     @Override
     public void run(){
 
-        for(int i = 0; i < 1; i++){
+        for(int i = 0; i < 200; i++){
             service.sendTestPictures();
             try {
                 Thread.sleep(4);

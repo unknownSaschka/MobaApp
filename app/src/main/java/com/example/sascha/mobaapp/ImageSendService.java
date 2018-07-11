@@ -46,8 +46,8 @@ public class ImageSendService extends WebSocketServer{
     public void onMessage(WebSocket conn, String message) {
         Log.i("ImageSendService", message);
         //sendTestPictures();
-        TestTimerSendThread thread = new TestTimerSendThread(this);
-        thread.run();
+        //TestTimerSendThread thread = new TestTimerSendThread(this);
+        //thread.run();
     }
 
     @Override
@@ -77,6 +77,20 @@ public class ImageSendService extends WebSocketServer{
             try {
                 sockets[i].send("true");
                 sockets[i].send(byteArray);
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+    public void sendImage(byte[] image, int rotation){
+        WebSocket[] sockets = WebSocketConnectionManager.returnSessionList();
+
+        for ( int i=0; i < sockets.length; i++ )
+        {
+            try {
+                sockets[i].send("true");
+                sockets[i].send(image);
             } catch (Exception e) {
 
             }
