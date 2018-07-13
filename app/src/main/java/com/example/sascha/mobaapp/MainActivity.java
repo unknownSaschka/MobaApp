@@ -1,11 +1,13 @@
 package com.example.sascha.mobaapp;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.net.Inet6Address;
+import java.io.InputStream;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Enumeration;
 
@@ -20,8 +22,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
@@ -32,11 +34,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.content.Intent;
 
 //TODO Besser auf IP-Addressen vergleichen
@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean httpServerActive = false;
     ServerThread thread;
     String ipAddress;
+    ImageSendService webSocketServer;
+    InetSocketAddress socketAddress;
 
     public CaptureService _CaptureService = null;
     public static final int REQUEST_CODE_SCREEN_CAPTURE = 69;
@@ -95,9 +97,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if(httpSocket == null) return;
-        thread = new ServerThread(httpSocket);
-        thread.start();
-        httpServerActive = true;
+
+
 
         //Abändern der angezeigten Daten
         TextView ipInfo = findViewById(R.id.yourIPText);
@@ -109,7 +110,26 @@ public class MainActivity extends AppCompatActivity {
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStop);
 
+        String html = indexToHTML(ipAddress);
+
+        thread = new ServerThread(httpSocket, html);
+        thread.start();
+        httpServerActive = true;
+
         generateQR(URI);
+
+
+        Bitmap test = BitmapFactory.decodeResource(getResources(), R.raw.animetest);
+
+        if(socketAddress != null){
+            webSocketServer = new ImageSendService(socketAddress, test);
+            webSocketServer.start();
+        }
+        else {
+            System.out.println("Fehler bei activeInetAddress");
+        }
+
+
     }
 
     public void startStream(){
@@ -133,6 +153,21 @@ public class MainActivity extends AppCompatActivity {
         ipAddressText.setText(ipAddress + "");
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStart);
+
+        ImageView qr = (ImageView) findViewById(R.id.QRImage);
+        qr.setImageDrawable(null);
+
+        try {
+            System.out.println("Server stoppen");
+            webSocketServer.stop();
+            webSocketServer = null;
+        } catch (IOException e) {
+
+        } catch (InterruptedException e) {
+
+        }
+        WebSocketConnectionManager.clear();
+
     }
 
     public String getIpAddr() {
@@ -150,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(interfacesEnum == null){
             ipAddress = String.valueOf(R.string.noInterface);
+            socketAddress = null;
             return ipAddress;
         }
 
@@ -160,15 +196,55 @@ public class MainActivity extends AppCompatActivity {
             while(inetAddressesEnum.hasMoreElements()){
                 inetAddress = inetAddressesEnum.nextElement();
 
-                if(inetAddress.isLoopbackAddress() || inetAddress instanceof Inet6Address){
-                    continue;
-                } else {
+                if(!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address){
                     ipAddress = inetAddress.getHostAddress();
+                    socketAddress = new InetSocketAddress(inetAddress, 8887);
+                } else {
+                    continue;
                 }
             }
         }
-
         return ipAddress;
+    }
+
+    public String indexToHTML(String ipAddress){
+        //Umwandeln von HTML zu String
+        InputStream databaseInputStream = getResources().openRawResource(R.raw.index);
+        BufferedInputStream br = new BufferedInputStream(databaseInputStream);
+        byte[] contents = new byte[1];
+        int bytesRead = 0;
+        String strFileContents;
+        String html = "";
+        try {
+            while ((bytesRead = br.read(contents)) != -1) {
+                strFileContents = new String(contents, 0, bytesRead);
+                //System.out.println("Auf html parsen: " + strFileContents);
+                if(strFileContents.equals("%")){
+                    //System.out.println("Erstes %");
+                    if((bytesRead = br.read(contents)) != -1){
+                        strFileContents = new String(contents, 0, bytesRead);
+                        if(strFileContents.equals("%")){
+                            System.out.println("Ersetzen durch ip adresse");
+                            strFileContents = ipAddress + ":8887";
+                        } else{
+                            strFileContents = "%" + strFileContents;
+                        }
+                    } else {
+                        strFileContents = "%";
+                    }
+                }
+                html += strFileContents;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(html);
+        return html;
     }
 
     public void generateQR(String ip){
