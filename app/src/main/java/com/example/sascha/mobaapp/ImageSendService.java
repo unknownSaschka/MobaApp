@@ -1,8 +1,13 @@
 package com.example.sascha.mobaapp;
 
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.media.Image;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.java_websocket.WebSocket;
@@ -10,19 +15,31 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
-
-/**
- * Created by Sascha on 08.07.2018.
- */
 
 public class ImageSendService extends WebSocketServer{
 
     Bitmap testImage;
     byte[] byteArray;
 
-    public ImageSendService(InetSocketAddress address, Bitmap image){
+    private LocalBroadcastManager _localBroadcaster;
+    private BroadcastReceiver _localListener = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent ) {
+
+            byte[] data = intent.getByteArrayExtra(OnNewImageReadyListener._imageDataName);
+            int rotation = 0;
+            if(data != null && rotation != -1){
+                sendImage(data, rotation);
+            }
+        }
+
+    };
+
+    public ImageSendService(InetSocketAddress address, Bitmap image, Context appContext){
         super(address);
         System.out.println("Starte WebSocket Server");
         testImage = image;
@@ -30,6 +47,9 @@ public class ImageSendService extends WebSocketServer{
         testImage.compress(Bitmap.CompressFormat.JPEG, 30, stream);
         byteArray = stream.toByteArray();
         WebSocketConnectionManager.clear();
+        _localBroadcaster = LocalBroadcastManager.getInstance(appContext);
+        IntentFilter tempFilter = new IntentFilter(OnNewImageReadyListener._imageEventName);
+        _localBroadcaster.registerReceiver(_localListener, tempFilter);
     }
 
     @Override
@@ -60,10 +80,6 @@ public class ImageSendService extends WebSocketServer{
         System.out.println("SocketServer gestartet");
     }
 
-    public void sendPicture(byte[] image, int rotation){
-
-    }
-
     public void sendTestPictures(){
 
         Log.i("ImageSendService", "SendeTestImage");
@@ -83,7 +99,7 @@ public class ImageSendService extends WebSocketServer{
         }
     }
 
-    public void sendImage(byte[] image, int rotation){
+    public synchronized void sendImage(byte[] image, int rotation){
         WebSocket[] sockets = WebSocketConnectionManager.returnSessionList();
 
         for ( int i=0; i < sockets.length; i++ )
@@ -95,5 +111,11 @@ public class ImageSendService extends WebSocketServer{
 
             }
         }
+    }
+
+    @Override
+    public void stop() throws IOException, InterruptedException{
+        super.stop();
+        _localBroadcaster.unregisterReceiver(_localListener);
     }
 }

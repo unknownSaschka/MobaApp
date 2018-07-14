@@ -12,11 +12,12 @@ import java.io.ByteArrayOutputStream;
 
 public class OnNewImageReadyListener implements ImageReader.OnImageAvailableListener {
     public static final String _imageEventName = "image";
+    public static final String _imageDataName = "image_data";
 
     private CaptureService _parent;
     private Bitmap _reusedBitmap;
     private ByteArrayOutputStream _JPEGOutputStream = new ByteArrayOutputStream();
-    private int _JPEGQuality = 30;
+    private int _JPEGQuality = 100;
     private Matrix _resizeMatrix = new Matrix();
 
     public OnNewImageReadyListener(CaptureService parent){
@@ -120,8 +121,8 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
         //TODO: Test performance of sending.
         //_JPEGOutputStream.toByteArray()
         //Bitmap blarg = BitmapFactory.decodeByteArray(_JPEGOutputStream.toByteArray(), 0, _JPEGOutputStream.toByteArray().length);
-        Intent intentToSend = new Intent();
-        intentToSend.putExtra(_imageEventName, _JPEGOutputStream.toByteArray());
+        Intent intentToSend = new Intent(_imageEventName);
+        intentToSend.putExtra(_imageDataName, _JPEGOutputStream.toByteArray());
 
         _parent.sendImage(intentToSend);
     }
