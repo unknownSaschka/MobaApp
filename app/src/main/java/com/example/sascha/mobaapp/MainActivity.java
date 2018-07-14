@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap test = BitmapFactory.decodeResource(getResources(), R.raw.animetest);
 
         if(socketAddress != null){
-            webSocketServer = new ImageSendService(socketAddress, test);
+            webSocketServer = new ImageSendService(socketAddress, test, getApplicationContext());
             webSocketServer.start();
         }
         else {

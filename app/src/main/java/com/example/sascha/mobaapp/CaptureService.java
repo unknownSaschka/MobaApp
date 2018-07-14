@@ -16,6 +16,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -36,7 +37,8 @@ public class CaptureService extends Service {
     private Display _ScreenToCapture = null;
     private VirtualDisplay _CapturedScreen = null;
     private ImageReader _ImageProcessor = null;
-    private ImageReader.OnImageAvailableListener _NewImageListener = new OnNewImageReadyListener();
+    private ImageReader.OnImageAvailableListener _NewImageListener = new OnNewImageReadyListener(this);
+    private LocalBroadcastManager _localBroadcaster;
 
     //Imagegenerating should run in an extra Thread.
     private HandlerThread _ImageThread = null;
@@ -57,6 +59,7 @@ public class CaptureService extends Service {
      */
     @Override
     public int onStartCommand(Intent _Intent, int flags, int startId){
+        _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
         if(Debug.InDebugging) {
             Log.i("Service", "Capture Service starting");
         }
@@ -135,5 +138,9 @@ public class CaptureService extends Service {
         stopCapturing();
         _ImageThread.quit();
         stopSelf();
+    }
+
+    public void sendImage(Intent intentToSend){
+        _localBroadcaster.sendBroadcast(intentToSend);
     }
 }
