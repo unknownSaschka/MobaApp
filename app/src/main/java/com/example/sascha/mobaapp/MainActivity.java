@@ -26,14 +26,19 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -45,12 +50,14 @@ public class MainActivity extends AppCompatActivity {
 
     static final int INET_PERMS = 1;
     static final int HttpServerPort = 8080;
-    ServerSocket httpSocket = null;
+    private ServerSocket httpSocket = null;
     private boolean httpServerActive = false;
-    ServerThread thread;
-    String ipAddress;
-    ImageSendService webSocketServer;
-    InetSocketAddress socketAddress;
+    private ServerThread thread;
+    private String ipAddress;
+    private ImageSendService webSocketServer;
+    private InetSocketAddress socketAddress;
+    private DrawerLayout mDrawerLayout;
+
 
     public CaptureService _CaptureService = null;
     public static final int REQUEST_CODE_SCREEN_CAPTURE = 69;
@@ -73,16 +80,46 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        //Sachen für Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.setDisplayHomeAsUpEnabled(true);
+        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+
+
+        //Listener setzen für den Drawer
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navView = findViewById(R.id.nav_view);
+        navView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        // set item as selected to persist highlight
+                        //menuItem.setChecked(true);
+                        // close drawer when item is tapped
+                        mDrawerLayout.closeDrawers();
+
+                        // Add code here to update the UI based on the item selected
+                        // For example, swap UI fragments here
+                        Log.i("MainActivity", "" + menuItem.getItemId());
+                        switch(menuItem.getItemId()){
+                            case R.id.nav_home:
+                                break;
+                            case R.id.nav_settings:
+                                break;
+                        }
+
+
+                        return true;
+                    }
+                });
 
         TextView ipInfo = findViewById(R.id.yourIPText);
         ipInfo.setText(R.string.ipInfoServerOff);
-        TextView ipText = (TextView) findViewById(R.id.ipAddressTW);
+        TextView ipText = findViewById(R.id.ipAddressTW);
         ipText.setText(getIpAddr());
 
-        Button startButton = (Button) findViewById(R.id.buttonStart);
+        Button startButton = findViewById(R.id.buttonStart);
         startButton.setText(R.string.buttonStart);
         startButton.setOnClickListener(new StartStopButtonListener(this));
     }
@@ -116,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
         thread.start();
         httpServerActive = true;
 
-        generateQR(URI);
+        //generateQR(URI);
 
 
         Bitmap test = BitmapFactory.decodeResource(getResources(), R.raw.animetest);
@@ -271,8 +308,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu, menu);
+
         return true;
     }
 
@@ -302,6 +338,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     public boolean getHTTPServerActive(){
         return httpServerActive;

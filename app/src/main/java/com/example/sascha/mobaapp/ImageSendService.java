@@ -62,7 +62,7 @@ public class ImageSendService extends WebSocketServer{
     @Override
     public void onMessage(WebSocket conn, String message) {
         Log.i("ImageSendService", message);
-        //sendTestPictures();
+        sendTestPictures();
         //TestTimerSendThread thread = new TestTimerSendThread(this);
         //thread.run();
     }
