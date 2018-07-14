@@ -20,6 +20,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.Surface;
 import android.view.WindowManager;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -141,5 +142,14 @@ public class CaptureService extends Service {
 
     public void sendImage(Intent intentToSend) {
         _localBroadcaster.sendBroadcast(intentToSend);
+    }
+
+    public boolean isLandscape(){
+        int rotation = _ScreenToCapture.getRotation();
+
+        if(rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180){
+            return true;
+        }
+        return false;
     }
 }
