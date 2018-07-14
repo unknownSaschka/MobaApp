@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -17,7 +16,6 @@ import org.java_websocket.server.WebSocketServer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 
 public class ImageSendService extends WebSocketServer{
 
@@ -30,10 +28,9 @@ public class ImageSendService extends WebSocketServer{
         @Override
         public void onReceive(Context context, Intent intent ) {
 
-            byte[] data = intent.getByteArrayExtra(OnNewImageReadyListener._imageDataName);
-            int rotation = 0;
-            if(data != null && rotation != -1){
-                sendImage(data, rotation);
+            byte[] data = intent.getByteArrayExtra(Constants._imageDataName);
+            if(data != null){
+                sendImage(data);
             }
         }
 
@@ -48,7 +45,7 @@ public class ImageSendService extends WebSocketServer{
         byteArray = stream.toByteArray();
         WebSocketConnectionManager.clear();
         _localBroadcaster = LocalBroadcastManager.getInstance(appContext);
-        IntentFilter tempFilter = new IntentFilter(OnNewImageReadyListener._imageEventName);
+        IntentFilter tempFilter = new IntentFilter(Constants._imageEventName);
         _localBroadcaster.registerReceiver(_localListener, tempFilter);
     }
 
@@ -99,7 +96,7 @@ public class ImageSendService extends WebSocketServer{
         }
     }
 
-    public synchronized void sendImage(byte[] image, int rotation){
+    public synchronized void sendImage(byte[] image){
         WebSocket[] sockets = WebSocketConnectionManager.returnSessionList();
 
         for ( int i=0; i < sockets.length; i++ )
