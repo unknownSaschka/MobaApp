@@ -34,7 +34,7 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
         Bitmap resizedBitmap = getResizedBitmap(cleanBitmap, tempImage);
         compressAsJPEG(resizedBitmap);
 
-        //Do some Cleanup!
+        //Do some Cleanup! .close is needed!
         tempImage.close();
         cleanBitmap.recycle();
         resizedBitmap.recycle();
@@ -117,8 +117,6 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      * asks the parent to send the outputstream casted to bytearray.
      */
     private void sendStreamAsByteArray() {
-        //_JPEGOutputStream.toByteArray()
-        //Bitmap blarg = BitmapFactory.decodeByteArray(_JPEGOutputStream.toByteArray(), 0, _JPEGOutputStream.toByteArray().length);
         Intent intentToSend = new Intent(Constants._imageEventName);
         intentToSend.putExtra(Constants._imageDataName, _JPEGOutputStream.toByteArray());
 

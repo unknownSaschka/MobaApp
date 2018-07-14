@@ -16,4 +16,6 @@
     <string name="streamQualityExp">0: Schlecht, 100: Beste Qualität</string>
     <string name="drawerHome">Home</string>
     <string name="drawerSettings">Einstellungen</string>
+    <string name="scalingSetting">Skalierung</string>
+    <string name="scalingInfo">(in %)</string>
 </resources>

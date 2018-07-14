@@ -44,8 +44,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.content.Intent;
 
-//TODO Besser auf IP-Addressen vergleichen
-
 public class MainActivity extends AppCompatActivity {
 
     static final int INET_PERMS = 1;
@@ -92,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navView = findViewById(R.id.nav_view);
         navView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
+
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         // set item as selected to persist highlight
@@ -106,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.nav_home:
                                 break;
                             case R.id.nav_settings:
+                                Intent intent = new Intent(MainActivity.this, Settings.class);
+                                startActivity(intent);
                                 break;
                         }
 
@@ -167,11 +168,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-    }
-
-    public void startStream(){
-        //ServerStream stream = new ServerStream();
-        //stream.start();
     }
 
     public void stopServer(){
@@ -328,8 +324,7 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == REQUEST_CODE_SCREEN_CAPTURE){
             if(resultCode == Activity.RESULT_OK){
-                Context blarg = getApplicationContext();
-                startService(new Intent(blarg, CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
+                startService(new Intent(getApplicationContext(), CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
             }
             else{
                 if(Debug.InDebugging) {

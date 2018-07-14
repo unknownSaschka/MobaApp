@@ -16,8 +16,8 @@
         android:layout_height="match_parent">
 
         <EditText
-            android:id="@+id/editText"
-            android:layout_width="130dp"
+            android:id="@+id/serverPortSettingsValue"
+            android:layout_width="73dp"
             android:layout_height="39dp"
             android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
@@ -35,8 +35,8 @@
             android:layout_marginTop="8dp"
             android:text="ServerPort"
             android:textSize="24sp"
-            app:layout_constraintEnd_toStartOf="@+id/editText"
-            app:layout_constraintHorizontal_bias="0.205"
+            app:layout_constraintEnd_toStartOf="@+id/serverPortSettingsValue"
+            app:layout_constraintHorizontal_bias="0.082"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
@@ -44,18 +44,19 @@
             android:id="@+id/textView2"
             android:layout_width="152dp"
             android:layout_height="20dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:text="Server Configurationen"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"
-            tools:layout_editor_absoluteX="16dp" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
         <TextView
             android:id="@+id/videoSettings"
-            android:layout_width="133dp"
-            android:layout_height="18dp"
+            android:layout_width="167dp"
+            android:layout_height="22dp"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:text="Video Einstellungen"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.03"
@@ -65,14 +66,13 @@
         <TextView
             android:id="@+id/textView4"
             android:layout_width="232dp"
-            android:layout_height="35dp"
+            android:layout_height="28dp"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
             android:text="Videoqualität"
             android:textSize="24sp"
             app:layout_constraintEnd_toStartOf="@+id/streamQuality"
-            app:layout_constraintHorizontal_bias="0.033"
+            app:layout_constraintHorizontal_bias="0.088"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/videoSettings" />
 
@@ -85,7 +85,7 @@
             android:ems="10"
             android:inputType="numberDecimal"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editText" />
+            app:layout_constraintTop_toBottomOf="@+id/serverPortSettingsValue" />
 
         <TextView
             android:id="@+id/textView5"
@@ -113,6 +113,43 @@
             app:title="@string/app_name"
             app:titleMarginTop="10dp"
             app:titleTextColor="@android:color/background_light" />
+
+        <TextView
+            android:id="@+id/scalingTextView"
+            android:layout_width="192dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/scalingSetting"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toStartOf="@+id/scaleSettingValue"
+            app:layout_constraintHorizontal_bias="0.054"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+        <EditText
+            android:id="@+id/scaleSettingValue"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="24dp"
+            android:ems="10"
+            android:inputType="numberDecimal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/streamQuality" />
+
+        <TextView
+            android:id="@+id/settingScaleInfo"
+            android:layout_width="69dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/scalingInfo"
+            app:layout_constraintEnd_toStartOf="@+id/scaleSettingValue"
+            app:layout_constraintHorizontal_bias="0.03"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/scalingTextView" />
     </android.support.constraint.ConstraintLayout>
 
     <android.support.design.widget.NavigationView
