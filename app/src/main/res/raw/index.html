@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <script src="https://rtcmulticonnection.herokuapp.com/dist/RTCMultiConnection.min.js"></script>
+    <script src="https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <style>
+        body {
+            background-color: #40444c;
+        }
+    </style>
+    <script>
+         document.addEventListener('DOMContentLoaded', init, false);
+         var socket;
+         function init(){
+
+            /*
+            var connection = new RTCMultiConnection();
+            connection.socketURL = '224.0.2.24';
+            */
+
+            var temp = window.document.getElementById("testbutton");
+            temp.addEventListener("click", sendPing, false);
+
+
+            var url = 'ws://%%';
+	        socket = new WebSocket(url);
+	        socket.onopen=sendenMoeglich;
+	        socket.onclose=Closing;
+	        socket.onerror=ErrorHandler;
+	        socket.onmessage=empfange;
+
+         }
+
+         function sendPing(){
+            socket.send("Ping");
+         }
+
+         function ErrorHandler(event){
+               alert("Fehler:" + event.data);
+         }
+
+         function empfange(message){
+                console.log(message);
+                var img = message.data;
+
+                if(img instanceof Blob){
+                    //var blob = new Blob(message.data, { type: "image/jpeg" } );
+                    var urlCreator = window.URL || window.webkitURL;
+                    var imageUrl = urlCreator.createObjectURL(img);
+                    document.getElementById("stream").src = imageUrl;
+                }
+                else {
+                    console.log(message.data);
+                }
+         }
+
+          function Closing(){
+                alert("Server hat die Verbindung getrennt");
+          }
+
+         function sendenMoeglich(){
+
+         }
+    </script>
+    <h1>Neuer Test</h1>
+    <button id="testbutton">Der Testbutton</button>
+    <img id="stream" height="800" width="1200"/>
+</body>
+</html>

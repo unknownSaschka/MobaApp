@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MobaApp</string>
+    <string name="app_name">SimpleStream</string>
     <string name="buttonStart">Starte Übertragung</string>
     <string name="buttonStop">Stop</string>
     <string name="ipInfoServerOff">Deine IP Adresse:</string>
@@ -7,4 +7,13 @@
     <string name="noIpFound">Keine IP-Adresse gefunden. Ist dein WLAN aus?</string>
     <string name="noInterface">Kein Interface gefunden</string>
     <string name="settings">Einstellungen</string>
+    <string name="serverPortSetting">Server Port</string>
+    <string name="Server_Settings">Servereinstellungen</string>
+    <string name="videoQualitySetting">Videoqualität</string>
+    <string name="videoSettings">Videoeinstellungen</string>
+    <string name="serverPortNumber">8080</string>
+    <string name="streamQuality">30</string>
+    <string name="streamQualityExp">0: Schlecht, 100: Beste Qualität</string>
+    <string name="drawerHome">Home</string>
+    <string name="drawerSettings">Einstellungen</string>
 </resources>

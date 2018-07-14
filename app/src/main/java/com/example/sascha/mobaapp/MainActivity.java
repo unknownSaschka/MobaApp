@@ -1,11 +1,13 @@
 package com.example.sascha.mobaapp;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.net.Inet6Address;
+import java.io.InputStream;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Enumeration;
 
@@ -20,23 +22,26 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.View;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.content.Intent;
 
 //TODO Besser auf IP-Addressen vergleichen
@@ -45,10 +50,14 @@ public class MainActivity extends AppCompatActivity {
 
     static final int INET_PERMS = 1;
     static final int HttpServerPort = 8080;
-    ServerSocket httpSocket = null;
+    private ServerSocket httpSocket = null;
     private boolean httpServerActive = false;
-    ServerThread thread;
-    String ipAddress;
+    private ServerThread thread;
+    private String ipAddress;
+    private ImageSendService webSocketServer;
+    private InetSocketAddress socketAddress;
+    private DrawerLayout mDrawerLayout;
+
 
     public CaptureService _CaptureService = null;
     public static final int REQUEST_CODE_SCREEN_CAPTURE = 69;
@@ -71,16 +80,46 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        //Sachen für Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.setDisplayHomeAsUpEnabled(true);
+        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+
+
+        //Listener setzen für den Drawer
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navView = findViewById(R.id.nav_view);
+        navView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        // set item as selected to persist highlight
+                        //menuItem.setChecked(true);
+                        // close drawer when item is tapped
+                        mDrawerLayout.closeDrawers();
+
+                        // Add code here to update the UI based on the item selected
+                        // For example, swap UI fragments here
+                        Log.i("MainActivity", "" + menuItem.getItemId());
+                        switch(menuItem.getItemId()){
+                            case R.id.nav_home:
+                                break;
+                            case R.id.nav_settings:
+                                break;
+                        }
+
+
+                        return true;
+                    }
+                });
 
         TextView ipInfo = findViewById(R.id.yourIPText);
         ipInfo.setText(R.string.ipInfoServerOff);
-        TextView ipText = (TextView) findViewById(R.id.ipAddressTW);
+        TextView ipText = findViewById(R.id.ipAddressTW);
         ipText.setText(getIpAddr());
 
-        Button startButton = (Button) findViewById(R.id.buttonStart);
+        Button startButton = findViewById(R.id.buttonStart);
         startButton.setText(R.string.buttonStart);
         startButton.setOnClickListener(new StartStopButtonListener(this));
     }
@@ -95,9 +134,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if(httpSocket == null) return;
-        thread = new ServerThread(httpSocket);
-        thread.start();
-        httpServerActive = true;
+
+
 
         //Abändern der angezeigten Daten
         TextView ipInfo = findViewById(R.id.yourIPText);
@@ -109,7 +147,26 @@ public class MainActivity extends AppCompatActivity {
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStop);
 
-        generateQR(URI);
+        String html = indexToHTML(ipAddress);
+
+        thread = new ServerThread(httpSocket, html);
+        thread.start();
+        httpServerActive = true;
+
+        //generateQR(URI);
+
+
+        Bitmap test = BitmapFactory.decodeResource(getResources(), R.raw.animetest);
+
+        if(socketAddress != null){
+            webSocketServer = new ImageSendService(socketAddress, test);
+            webSocketServer.start();
+        }
+        else {
+            System.out.println("Fehler bei activeInetAddress");
+        }
+
+
     }
 
     public void startStream(){
@@ -133,6 +190,21 @@ public class MainActivity extends AppCompatActivity {
         ipAddressText.setText(ipAddress + "");
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStart);
+
+        ImageView qr = (ImageView) findViewById(R.id.QRImage);
+        qr.setImageDrawable(null);
+
+        try {
+            System.out.println("Server stoppen");
+            webSocketServer.stop();
+            webSocketServer = null;
+        } catch (IOException e) {
+
+        } catch (InterruptedException e) {
+
+        }
+        WebSocketConnectionManager.clear();
+
     }
 
     public String getIpAddr() {
@@ -150,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(interfacesEnum == null){
             ipAddress = String.valueOf(R.string.noInterface);
+            socketAddress = null;
             return ipAddress;
         }
 
@@ -160,15 +233,55 @@ public class MainActivity extends AppCompatActivity {
             while(inetAddressesEnum.hasMoreElements()){
                 inetAddress = inetAddressesEnum.nextElement();
 
-                if(inetAddress.isLoopbackAddress() || inetAddress instanceof Inet6Address){
-                    continue;
-                } else {
+                if(!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address){
                     ipAddress = inetAddress.getHostAddress();
+                    socketAddress = new InetSocketAddress(inetAddress, 8887);
+                } else {
+                    continue;
                 }
             }
         }
-
         return ipAddress;
+    }
+
+    public String indexToHTML(String ipAddress){
+        //Umwandeln von HTML zu String
+        InputStream databaseInputStream = getResources().openRawResource(R.raw.index);
+        BufferedInputStream br = new BufferedInputStream(databaseInputStream);
+        byte[] contents = new byte[1];
+        int bytesRead = 0;
+        String strFileContents;
+        String html = "";
+        try {
+            while ((bytesRead = br.read(contents)) != -1) {
+                strFileContents = new String(contents, 0, bytesRead);
+                //System.out.println("Auf html parsen: " + strFileContents);
+                if(strFileContents.equals("%")){
+                    //System.out.println("Erstes %");
+                    if((bytesRead = br.read(contents)) != -1){
+                        strFileContents = new String(contents, 0, bytesRead);
+                        if(strFileContents.equals("%")){
+                            System.out.println("Ersetzen durch ip adresse");
+                            strFileContents = ipAddress + ":8887";
+                        } else{
+                            strFileContents = "%" + strFileContents;
+                        }
+                    } else {
+                        strFileContents = "%";
+                    }
+                }
+                html += strFileContents;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(html);
+        return html;
     }
 
     public void generateQR(String ip){
@@ -195,8 +308,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu, menu);
+
         return true;
     }
 
@@ -226,6 +338,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     public boolean getHTTPServerActive(){
         return httpServerActive;
