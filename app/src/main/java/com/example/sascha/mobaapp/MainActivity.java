@@ -311,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy(){
         super.onDestroy();
+        stopServer();
         if(httpSocket != null){
             try {
                 httpSocket.close();
