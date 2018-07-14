@@ -16,6 +16,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -25,7 +26,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 public class CaptureService extends Service {
 
-    private MediaProjection.Callback ProjectionCallback = new MediaProjection.Callback(){
+    private MediaProjection.Callback ProjectionCallback = new MediaProjection.Callback() {
         @Override
         public void onStop() {
             super.onStop();
@@ -36,9 +37,10 @@ public class CaptureService extends Service {
     private Display _ScreenToCapture = null;
     private VirtualDisplay _CapturedScreen = null;
     private ImageReader _ImageProcessor = null;
-    private ImageReader.OnImageAvailableListener _NewImageListener = new OnNewImageReadyListener();
+    private ImageReader.OnImageAvailableListener _NewImageListener = new OnNewImageReadyListener(this);
+    private LocalBroadcastManager _localBroadcaster;
 
-    //Imagegenerating should run in an extra Thread.
+    //Image generation should run in an extra Thread.
     private HandlerThread _ImageThread = null;
     private Handler _ImageThreadHandler = null;
 
@@ -50,26 +52,27 @@ public class CaptureService extends Service {
 
     /**
      * First called method in a new object.
-     * @param _Intent You need to pass the capturetokenIntent as extra.
-     * @param flags -
+     *
+     * @param _Intent You need to pass the capturetoken Intent as extra.
+     * @param flags   -
      * @param startId -
      * @return -
      */
     @Override
-    public int onStartCommand(Intent _Intent, int flags, int startId){
-        if(Debug.InDebugging) {
+    public int onStartCommand(Intent _Intent, int flags, int startId) {
+        _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
+        if (Debug.InDebugging) {
             Log.i("Service", "Capture Service starting");
         }
         Parcelable realIntent = _Intent.getParcelableExtra(Intent.EXTRA_INTENT);
 
-        if(realIntent != null){
-            if(Debug.InDebugging) {
+        if (realIntent != null) {
+            if (Debug.InDebugging) {
                 Log.i("Service", "Token received.");
             }
             bootingService((Intent) realIntent);
-        }
-        else{
-            if(Debug.InDebugging) {
+        } else {
+            if (Debug.InDebugging) {
                 Log.d("Service", "Did not recieve token for Capturing.");
             }
             stopSelf();
@@ -78,29 +81,29 @@ public class CaptureService extends Service {
         return Service.START_NOT_STICKY;
     }
 
-    private void bootingService(Intent captureTokenIntent){
+    private void bootingService(Intent captureTokenIntent) {
         _ScreenCapturer = ((MediaProjectionManager) getSystemService(getApplicationContext().MEDIA_PROJECTION_SERVICE)).getMediaProjection(Activity.RESULT_OK, captureTokenIntent);
         _ScreenCapturer.registerCallback(ProjectionCallback, new Handler(Looper.getMainLooper()));
         _ScreenToCapture = ((WindowManager) getSystemService(getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
-        if(Debug.InDebugging) {
+        if (Debug.InDebugging) {
             Log.i("Service", "Booted Capturing.");
         }
         _ImageThread = new HandlerThread("ImageGenerator", THREAD_PRIORITY_BACKGROUND);
         _ImageThread.start();
         _ImageThreadHandler = new Handler(_ImageThread.getLooper());
-        if(Debug.InDebugging) {
+        if (Debug.InDebugging) {
             Log.i("Service", "Thread started.");
         }
         startCapturing();
     }
 
-    private void startCapturing(){
+    private void startCapturing() {
         Point screenSize = new Point();
         _ScreenToCapture.getSize(screenSize);
         _ImageProcessor = ImageReader.newInstance(screenSize.x, screenSize.y, PixelFormat.RGBA_8888, 2);
         _ImageProcessor.setOnImageAvailableListener(_NewImageListener, _ImageThreadHandler);
 
-        try{
+        try {
             DisplayMetrics metric = new DisplayMetrics();
             _ScreenToCapture.getMetrics(metric);
             _CapturedScreen = _ScreenCapturer.createVirtualDisplay(
@@ -108,12 +111,11 @@ public class CaptureService extends Service {
                     screenSize.x, screenSize.y,
                     metric.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION,
                     _ImageProcessor.getSurface(), null, _ImageThreadHandler);
-            if(Debug.InDebugging) {
+            if (Debug.InDebugging) {
                 Log.i("Service", "Created Virtual Display.");
             }
-        }
-        catch(Exception e){
-            if(Debug.InDebugging) {
+        } catch (Exception e) {
+            if (Debug.InDebugging) {
                 Log.d("Service", "Could not create virtual display");
             }
         }
@@ -122,7 +124,7 @@ public class CaptureService extends Service {
     /**
      * Here should only the capturing be stopped
      */
-    private void stopCapturing(){
+    private void stopCapturing() {
         _CapturedScreen.release();
         _ImageProcessor.close();
         //_NewImageListener should be closed, why?
@@ -131,9 +133,13 @@ public class CaptureService extends Service {
     /**
      * This should be used to stop the whole Service.
      */
-    public void stopService(){
+    public void stopService() {
         stopCapturing();
         _ImageThread.quit();
         stopSelf();
+    }
+
+    public void sendImage(Intent intentToSend) {
+        _localBroadcaster.sendBroadcast(intentToSend);
     }
 }

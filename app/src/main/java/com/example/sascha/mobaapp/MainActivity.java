@@ -44,8 +44,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.content.Intent;
 
-//TODO Besser auf IP-Addressen vergleichen
-
 public class MainActivity extends AppCompatActivity {
 
     static final int INET_PERMS = 1;
@@ -162,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap test = BitmapFactory.decodeResource(getResources(), R.raw.animetest);
 
         if(socketAddress != null){
-            webSocketServer = new ImageSendService(socketAddress, test);
+            webSocketServer = new ImageSendService(socketAddress, test, getApplicationContext());
             webSocketServer.start();
         }
         else {
@@ -170,11 +168,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-    }
-
-    public void startStream(){
-        //ServerStream stream = new ServerStream();
-        //stream.start();
     }
 
     public void stopServer(){
@@ -331,8 +324,7 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == REQUEST_CODE_SCREEN_CAPTURE){
             if(resultCode == Activity.RESULT_OK){
-                Context blarg = getApplicationContext();
-                startService(new Intent(blarg, CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
+                startService(new Intent(getApplicationContext(), CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
             }
             else{
                 if(Debug.InDebugging) {
