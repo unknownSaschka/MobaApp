@@ -21,8 +21,12 @@
             connection.socketURL = '224.0.2.24';
             */
 
-            var temp = window.document.getElementById("testbutton");
-            temp.addEventListener("click", sendPing, false);
+            //var temp = window.document.getElementById("testbutton");
+            //temp.addEventListener("click", sendPing, false);
+
+            //var imgCon = document.getElementById("stream");
+            //console.log("availHeight: " + window.screen.availHeight + " availWidth: " + window.screen.availWidth);
+
 
 
             var url = 'ws://%%';
@@ -50,14 +54,18 @@
                     //var blob = new Blob(message.data, { type: "image/jpeg" } );
                     var urlCreator = window.URL || window.webkitURL;
                     var imageUrl = urlCreator.createObjectURL(img);
-                    document.getElementById("stream").src = imageUrl;
+                    var imgCon = document.getElementById("stream");
+                    imgCon.height = window.screen.height;
+                    imgCon.width = window.screen.width;
+                    imgCon.src = imageUrl;
                 }
                 else {
                     console.log(message.data);
                     var json = JSON.parse(img);
                     var height = json.height;
                     var width = json.width;
-                    console.log("breite: " + width + " höhe: " + height);
+                    //console.log("breite: " + width + " höhe: " + height);
+
 
                 }
          }
@@ -70,8 +78,6 @@
 
          }
     </script>
-    <h1>Neuer Test</h1>
-    <button id="testbutton">Der Testbutton</button>
     <img id="stream" height="1920" width="1080"/>
 </body>
 </html>
