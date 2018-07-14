@@ -1,23 +1,32 @@
 package com.example.sascha.mobaapp;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.Image;
 import android.media.ImageReader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 
 public class OnNewImageReadyListener implements ImageReader.OnImageAvailableListener {
+    public static final String _imageEventName = "image";
+
+    private CaptureService _parent;
     private Bitmap _reusedBitmap;
     private ByteArrayOutputStream _JPEGOutputStream = new ByteArrayOutputStream();
     private int _JPEGQuality = 30;
-    private Matrix resizeMatrix = new Matrix();
+    private Matrix _resizeMatrix = new Matrix();
+
+    public OnNewImageReadyListener(CaptureService parent){
+        _parent = parent;
+    }
 
     @Override
     public synchronized void onImageAvailable(ImageReader _ImageReader) {
         Image tempImage = tryToGetLatestImage(_ImageReader);
-        resizeMatrix.setScale(0.5f, 0.5f);
+        _resizeMatrix.setScale(0.5f, 0.5f);
 
         if(tempImage == null){
             return;
@@ -90,18 +99,30 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
     private Bitmap getResizedBitmap(Bitmap cleanBitmap, Image rawImage){
         Bitmap resizedBitmap;
 
-        resizedBitmap = Bitmap.createBitmap(cleanBitmap, 0, 0, rawImage.getWidth(), rawImage.getHeight(), resizeMatrix, false);
+        resizedBitmap = Bitmap.createBitmap(cleanBitmap, 0, 0, rawImage.getWidth(), rawImage.getHeight(), _resizeMatrix, false);
 
         return resizedBitmap;
     }
 
+    /**
+     * Compresses the bitmap as JPEG to the class member output.
+     * @param bitmapToCompress The bitmap to compress.
+     */
     private void compressAsJPEG(Bitmap bitmapToCompress){
         _JPEGOutputStream.reset();
         bitmapToCompress.compress(Bitmap.CompressFormat.JPEG, _JPEGQuality, _JPEGOutputStream);
     }
 
+    /**
+     *  asks the parent to send the outputstream casted to bytearray.
+     */
     private void sendStreamAsByteArray(){
-        //TODO: sending Bytearray
+        //TODO: Test performance of sending.
         //_JPEGOutputStream.toByteArray()
+        //Bitmap blarg = BitmapFactory.decodeByteArray(_JPEGOutputStream.toByteArray(), 0, _JPEGOutputStream.toByteArray().length);
+        Intent intentToSend = new Intent();
+        intentToSend.putExtra(_imageEventName, _JPEGOutputStream.toByteArray());
+
+        _parent.sendImage(intentToSend);
     }
 }
