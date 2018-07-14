@@ -55,8 +55,8 @@
                     var urlCreator = window.URL || window.webkitURL;
                     var imageUrl = urlCreator.createObjectURL(img);
                     var imgCon = document.getElementById("stream");
-                    imgCon.height = window.screen.height;
-                    imgCon.width = window.screen.width;
+                    //imgCon.height = window.screen.height;
+                    //imgCon.width = window.screen.width;
                     imgCon.src = imageUrl;
                 }
                 else {
@@ -64,8 +64,26 @@
                     var json = JSON.parse(img);
                     var height = json.height;
                     var width = json.width;
-                    //console.log("breite: " + width + " höhe: " + height);
+                    console.log("breite: " + width + " hoehe: " + height);
+                    var imgCon = document.getElementById("stream");
+                    imgCon.height = width;
+                    imgCon.width = height;
+                    var ratio = width / height;
 
+                    //Landscape
+                    if(height < width){
+                    /*
+                        imgCon.height = window.screen.height;
+                        imgCon.width = window.screen.height * ratio;
+                        */
+                    }
+                    else {
+
+                    /*
+                        imgCon.width = window.screen.width;
+                        imgCon.height = window.screen.width * ratio;
+                        */
+                    }
 
                 }
          }

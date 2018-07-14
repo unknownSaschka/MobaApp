@@ -43,10 +43,12 @@ public class ImageSendService extends WebSocketServer {
         _localBroadcaster = LocalBroadcastManager.getInstance(appContext);
         IntentFilter tempFilter = new IntentFilter(Constants._imageEventName);
         _localBroadcaster.registerReceiver(_localListener, tempFilter);
+        Log.i("ImageSendService", "WebSocketServer läuft");
     }
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
+        Log.i("ImageSendService", "Öffnen");
         WebSocketConnectionManager.addSession(conn);
     }
 
@@ -64,7 +66,7 @@ public class ImageSendService extends WebSocketServer {
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-
+        Log.i("ImageSendService", "IsError");
     }
 
     @Override
