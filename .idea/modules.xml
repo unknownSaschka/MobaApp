@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MobaApp.iml" filepath="$PROJECT_DIR$/MobaApp.iml" />
-      <module fileurl="file://$USER_HOME$/AndroidStudioProjects/MobaApp/.idea/MobaApp.iml" filepath="$USER_HOME$/AndroidStudioProjects/MobaApp/.idea/MobaApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
