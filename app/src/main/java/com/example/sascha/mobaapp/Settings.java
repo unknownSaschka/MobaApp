@@ -60,6 +60,13 @@ public class Settings extends AppCompatActivity {
         temp.setText("30");
         temp = findViewById(R.id.scaleSettingValue);
         temp.setText("1234");
+    }
+
+    public void saveAll(){
+
+    }
+
+    public void readAll(){
 
     }
 }

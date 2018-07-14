@@ -17,6 +17,10 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
     private int _JPEGQuality = 100;
     private Matrix _resizeMatrix = new Matrix();
 
+    //Holds the correct Image Data after cleanup as long the image is still in process.
+    private int _width = 0;
+    private int _height = 0;
+
     public OnNewImageReadyListener(CaptureService parent) {
         _parent = parent;
     }
@@ -41,6 +45,8 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
 
         sendStreamAsByteArray();
 
+        _width = 0;
+        _height = 0;
     }
 
     /**
@@ -81,14 +87,18 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
         int pixelPerRow = rawPlane.getRowStride() / rawPlane.getPixelStride();
 
         //Is there Padding in the raw data?
-        //Yes? Then cut of padding.
+        //Yes? Then make bigger Image.
         if (pixelPerRow > rawImage.getWidth()) {
             if (_reusedBitmap == null) {
                 _reusedBitmap = Bitmap.createBitmap(pixelPerRow, rawImage.getHeight(), Bitmap.Config.ARGB_8888);
             }
+            _width = pixelPerRow;
+            _height = rawImage.getHeight();
             _reusedBitmap.copyPixelsFromBuffer(rawPlane.getBuffer());
             cleanedBitmap = Bitmap.createBitmap(_reusedBitmap, 0, 0, rawImage.getWidth(), rawImage.getHeight());
         } else {
+            _width = rawImage.getWidth();
+            _height = rawImage.getHeight();
             cleanedBitmap = Bitmap.createBitmap(rawImage.getWidth(), rawImage.getHeight(), Bitmap.Config.ARGB_8888);
             cleanedBitmap.copyPixelsFromBuffer(rawPlane.getBuffer());
         }
@@ -118,6 +128,8 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      */
     private void sendStreamAsByteArray() {
         Intent intentToSend = new Intent(Constants._imageEventName);
+        intentToSend.putExtra(Constants._imageWidth, _width);
+        intentToSend.putExtra(Constants._imageHeight, _height);
         intentToSend.putExtra(Constants._imageDataName, _JPEGOutputStream.toByteArray());
 
         _parent.sendImage(intentToSend);
