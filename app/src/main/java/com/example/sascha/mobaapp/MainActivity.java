@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navView = findViewById(R.id.nav_view);
         navView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
+
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         // set item as selected to persist highlight
@@ -104,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.nav_home:
                                 break;
                             case R.id.nav_settings:
+                                Intent intent = new Intent(MainActivity.this, Settings.class);
+                                startActivity(intent);
                                 break;
                         }
 
