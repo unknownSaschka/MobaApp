@@ -20,12 +20,15 @@ public class ImageSendService extends WebSocketServer {
 
     private LocalBroadcastManager _localBroadcaster;
     private BroadcastReceiver _localListener = new BroadcastReceiver() {
-
+        //Gets only events from Type Constants._imageEventName
         @Override
         public void onReceive(Context context, Intent intent) {
             byte[] data = intent.getByteArrayExtra(Constants._imageDataName);
-            if (data != null) {
-                sendImage(data, 1920, 1080);
+            int width = intent.getIntExtra(Constants._imageWidth, 0);
+            int height = intent.getIntExtra(Constants._imageHeight, 0);
+
+            if (data != null && width != 0 && height != 0) {
+                sendImage(data, width, height);
             }
         }
 
