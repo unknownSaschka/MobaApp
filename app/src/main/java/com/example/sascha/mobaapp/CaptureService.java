@@ -148,8 +148,8 @@ public class CaptureService extends Service {
         int rotation = _ScreenToCapture.getRotation();
 
         if(rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180){
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 }
