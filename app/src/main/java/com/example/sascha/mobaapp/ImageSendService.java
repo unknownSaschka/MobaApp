@@ -25,7 +25,7 @@ public class ImageSendService extends WebSocketServer {
         public void onReceive(Context context, Intent intent) {
             byte[] data = intent.getByteArrayExtra(Constants._imageDataName);
             if (data != null) {
-                sendImage(data);
+                sendImage(data, 1920, 1080);
             }
         }
 
@@ -71,12 +71,12 @@ public class ImageSendService extends WebSocketServer {
         }
     }
 
-    public synchronized void sendImage(byte[] image) {
+    public synchronized void sendImage(byte[] image, int width, int height) {
         WebSocket[] sockets = WebSocketConnectionManager.returnSessionList();
 
         for (int i = 0; i < sockets.length; i++) {
             try {
-                sockets[i].send("true");
+                sockets[i].send("{\"width\":\"" + width +"\" , \"height\":\""+ height +"\" }");
                 sockets[i].send(image);
             } catch (Exception e) {
             }

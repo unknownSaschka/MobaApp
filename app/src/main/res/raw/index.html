@@ -43,7 +43,7 @@
          }
 
          function empfange(message){
-                console.log(message);
+                //console.log(message);
                 var img = message.data;
 
                 if(img instanceof Blob){
@@ -54,6 +54,11 @@
                 }
                 else {
                     console.log(message.data);
+                    var json = JSON.parse(img);
+                    var height = json.height;
+                    var width = json.width;
+                    console.log("breite: " + width + " höhe: " + height);
+
                 }
          }
 
@@ -67,6 +72,6 @@
     </script>
     <h1>Neuer Test</h1>
     <button id="testbutton">Der Testbutton</button>
-    <img id="stream" height="800" width="1200"/>
+    <img id="stream" height="1920" width="1080"/>
 </body>
 </html>

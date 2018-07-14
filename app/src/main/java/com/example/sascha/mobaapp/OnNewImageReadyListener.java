@@ -14,7 +14,7 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
     private CaptureService _parent;
     private Bitmap _reusedBitmap;
     private ByteArrayOutputStream _JPEGOutputStream = new ByteArrayOutputStream();
-    private int _JPEGQuality = 100;
+    private int _JPEGQuality = 50;
     private Matrix _resizeMatrix = new Matrix();
 
     public OnNewImageReadyListener(CaptureService parent) {
