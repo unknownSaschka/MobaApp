@@ -66,23 +66,12 @@
                     var width = json.width;
                     console.log("breite: " + width + " hoehe: " + height);
                     var imgCon = document.getElementById("stream");
-                    imgCon.height = width;
-                    imgCon.width = height;
+                    imgCon.height = height;
+                    imgCon.width = width;
                     var ratio = width / height;
 
-                    //Landscape
-                    if(height < width){
-                    /*
-                        imgCon.height = window.screen.height;
-                        imgCon.width = window.screen.height * ratio;
-                        */
-                    }
-                    else {
+                    if(width < height){
 
-                    /*
-                        imgCon.width = window.screen.width;
-                        imgCon.height = window.screen.width * ratio;
-                        */
                     }
 
                 }
