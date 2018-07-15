@@ -59,30 +59,14 @@ public class CaptureService extends Service {
     }
 
     /**
-     * First called method in a new object.
      *
      * @param _Intent You need to pass the capturetoken Intent as extra.
      * @param flags   -
      * @param startId -
      * @return -
      */
-    @Override
+    @Override //Is called once per StartService call! //TODO: fix memory leak.
     public int onStartCommand(Intent _Intent, int flags, int startId) {
-        Context tempContext = getApplicationContext();
-        _localBroadcaster = LocalBroadcastManager.getInstance(tempContext);
-        _rotationListener = new OrientationEventListener(tempContext) {
-            @Override
-            public synchronized void onOrientationChanged(int i) {
-                updateRotation();
-                if (hasRotationChanged()) {
-                    CaptureService.this.restartCapturing();
-                }
-            }
-        };
-        _rotationListener.enable();
-        if (Debug.InDebugging) {
-            Log.i("Service", "Capture Service starting");
-        }
         Parcelable realIntent = _Intent.getParcelableExtra(Intent.EXTRA_INTENT);
 
         if (realIntent != null) {
@@ -98,6 +82,27 @@ public class CaptureService extends Service {
             return Service.START_NOT_STICKY;
         }
         return Service.START_NOT_STICKY;
+    }
+
+
+    @Override //Is called just once!
+    public void onCreate(){
+        Context tempContext = getApplicationContext();
+        _localBroadcaster = LocalBroadcastManager.getInstance(tempContext);
+        _rotationListener = new OrientationEventListener(tempContext) {
+            @Override
+            public synchronized void onOrientationChanged(int i) {
+                updateRotation();
+                if (hasRotationChanged()) {
+                    CaptureService.this.restartCapturing();
+                }
+            }
+        };
+        _rotationListener.enable();
+        if (Debug.InDebugging) {
+            Log.i("Service", "Capture Service starting");
+        }
+
     }
 
     private void bootingService(Intent captureTokenIntent) {
