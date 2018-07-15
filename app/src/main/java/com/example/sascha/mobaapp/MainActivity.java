@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         thread.start();
         httpServerActive = true;
 
-        //generateQR(URI);
+        generateQR(URI);
 
         if(socketAddress != null){
             webSocketServer = new ImageSendService(socketAddress, getApplicationContext());

@@ -57,9 +57,9 @@ public class Settings extends AppCompatActivity {
         EditText temp = findViewById(R.id.serverPortSettingsValue);
         temp.setText("8080");
         temp = findViewById(R.id.streamQuality);
-        temp.setText("30");
+        temp.setText("70");
         temp = findViewById(R.id.scaleSettingValue);
-        temp.setText("1234");
+        temp.setText("50");
     }
 
     public void saveAll(){
