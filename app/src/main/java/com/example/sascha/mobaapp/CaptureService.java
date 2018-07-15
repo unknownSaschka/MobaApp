@@ -2,7 +2,9 @@ package com.example.sascha.mobaapp;
 
 import android.app.Activity;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
@@ -20,6 +22,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -45,6 +48,10 @@ public class CaptureService extends Service {
     private HandlerThread _ImageThread = null;
     private Handler _ImageThreadHandler = null;
 
+    private int _Orientation = Configuration.ORIENTATION_UNDEFINED;
+    private int _LastOrientation = Configuration.ORIENTATION_UNDEFINED;
+    private OrientationEventListener _rotationListener;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -61,7 +68,18 @@ public class CaptureService extends Service {
      */
     @Override
     public int onStartCommand(Intent _Intent, int flags, int startId) {
-        _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
+        Context tempContext = getApplicationContext();
+        _localBroadcaster = LocalBroadcastManager.getInstance(tempContext);
+        _rotationListener = new OrientationEventListener(tempContext) {
+            @Override
+            public synchronized void onOrientationChanged(int i) {
+                updateRotation();
+                if (hasRotationChanged()) {
+                    CaptureService.this.restartCapturing();
+                }
+            }
+        };
+        _rotationListener.enable();
         if (Debug.InDebugging) {
             Log.i("Service", "Capture Service starting");
         }
@@ -89,15 +107,32 @@ public class CaptureService extends Service {
         if (Debug.InDebugging) {
             Log.i("Service", "Booted Capturing.");
         }
+
         _ImageThread = new HandlerThread("ImageGenerator", THREAD_PRIORITY_BACKGROUND);
         _ImageThread.start();
         _ImageThreadHandler = new Handler(_ImageThread.getLooper());
         if (Debug.InDebugging) {
             Log.i("Service", "Thread started.");
         }
+        updateRotation();
+        _LastOrientation = _Orientation;
         startCapturing();
     }
 
+    /**
+     * Needs to be called, if the rotation of the screen changes.
+     */
+    private synchronized void restartCapturing() {
+        if (Debug.InDebugging) {
+            Log.i("CaptureService", "Restart");
+        }
+        stopCapturing();
+        startCapturing();
+    }
+
+    /**
+     * Starts the actual processing of the captured screen.
+     */
     private void startCapturing() {
         Point screenSize = new Point();
         _ScreenToCapture.getSize(screenSize);
@@ -128,7 +163,6 @@ public class CaptureService extends Service {
     private void stopCapturing() {
         _CapturedScreen.release();
         _ImageProcessor.close();
-        //_NewImageListener should be closed, why?
     }
 
     /**
@@ -137,19 +171,63 @@ public class CaptureService extends Service {
     public void stopService() {
         stopCapturing();
         _ImageThread.quit();
+        _rotationListener.disable();
         stopSelf();
     }
 
+    @Override
+    public void onDestroy() {
+        stopService();
+    }
+
+    /**
+     * Workaround, because listener has no context to send intents.
+     *
+     * @param intentToSend -
+     */
     public void sendImage(Intent intentToSend) {
         _localBroadcaster.sendBroadcast(intentToSend);
     }
 
-    public boolean isLandscape(){
-        int rotation = _ScreenToCapture.getRotation();
+    /**
+     * Workaroundd, because listener should not know device screen.
+     *
+     * @return true if device is rotated in landscape mode.
+     */
+    public boolean isLandscape() {
 
-        if(rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180){
+        if (_Orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            return true;
+        } else {
             return false;
         }
-        return true;
+    }
+
+    /**
+     * updates Rotation.
+     */
+    private void updateRotation() {
+        int rotation = _ScreenToCapture.getRotation();
+        _LastOrientation = _Orientation;
+        if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) {
+            _Orientation = Configuration.ORIENTATION_PORTRAIT;
+        } else if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
+            _Orientation = Configuration.ORIENTATION_LANDSCAPE;
+        } else {
+            _Orientation = Configuration.ORIENTATION_UNDEFINED;
+        }
+    }
+
+    /**
+     * Looks if rotation changed since last functioncall.
+     *
+     * @return true if screenRotation changed since last methode call.
+     */
+    private boolean hasRotationChanged() {
+        Boolean toReturn = false;
+        if (_Orientation != _LastOrientation) {
+            toReturn = true;
+        }
+        return toReturn;
     }
 }

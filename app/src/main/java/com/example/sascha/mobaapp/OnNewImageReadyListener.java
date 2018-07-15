@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream;
 
 public class OnNewImageReadyListener implements ImageReader.OnImageAvailableListener {
     private CaptureService _parent;
-    private Bitmap _reusedBitmap;
     private ByteArrayOutputStream _JPEGOutputStream = new ByteArrayOutputStream();
     private int _JPEGQuality = 50;
     private Matrix _resizeMatrix = new Matrix();
@@ -27,26 +26,28 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
 
     @Override
     public synchronized void onImageAvailable(ImageReader _ImageReader) {
-        Image tempImage = tryToGetLatestImage(_ImageReader);
-        _resizeMatrix.setScale(0.5f, 0.5f);
+        synchronized (_parent) {
+            Image tempImage = tryToGetLatestImage(_ImageReader);
+            _resizeMatrix.setScale(0.5f, 0.5f);
 
-        if (tempImage == null) {
-            return;
+            if (tempImage == null) {
+                return;
+            }
+            Bitmap cleanBitmap = getCleanedBitmap(tempImage);
+            Bitmap resizedBitmap = getResizedBitmap(cleanBitmap, tempImage);
+
+            compressAsJPEG(resizedBitmap);
+
+            //Do some Cleanup! .close is needed!
+            tempImage.close();
+            cleanBitmap.recycle();
+            resizedBitmap.recycle();
+
+            sendStreamAsByteArray();
+
+            _width = 0;
+            _height = 0;
         }
-
-        Bitmap cleanBitmap = getCleanedBitmap(tempImage);
-        Bitmap resizedBitmap = getResizedBitmap(cleanBitmap, tempImage);
-        compressAsJPEG(resizedBitmap);
-
-        //Do some Cleanup! .close is needed!
-        tempImage.close();
-        cleanBitmap.recycle();
-        resizedBitmap.recycle();
-
-        sendStreamAsByteArray();
-
-        _width = 0;
-        _height = 0;
     }
 
     /**
@@ -55,7 +56,7 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      * @param _ImageReader The Reader, that has the Image
      * @return May be null otherwise the latest Image.
      */
-    private Image tryToGetLatestImage(ImageReader _ImageReader) {
+    private Image tryToGetLatestImage(ImageReader _ImageReader) throws IllegalStateException {
         Image tempImage;
         try {
             tempImage = _ImageReader.acquireLatestImage();
@@ -77,7 +78,7 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      * @param rawImage Image to clear. Must not be null!
      * @return cleared Bitmap without padding.
      */
-    private Bitmap getCleanedBitmap(Image rawImage) {
+    private Bitmap getCleanedBitmap(Image rawImage) throws IllegalStateException {
         Bitmap cleanedBitmap;
 
         //We are uniplanar. Like an unicorn!
@@ -89,23 +90,20 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
         //Is there Padding in the raw data?
         //Yes? Then make bigger Image.
         if (pixelPerRow > rawImage.getWidth()) {
-            if (_reusedBitmap == null) {
-                _reusedBitmap = Bitmap.createBitmap(pixelPerRow, rawImage.getHeight(), Bitmap.Config.ARGB_8888);
-            }
-            _width = pixelPerRow;
-            _height = rawImage.getHeight();
-            _reusedBitmap.copyPixelsFromBuffer(rawPlane.getBuffer());
-            cleanedBitmap = Bitmap.createBitmap(_reusedBitmap, 0, 0, rawImage.getWidth(), rawImage.getHeight());
+            Bitmap tempBitmap = Bitmap.createBitmap(pixelPerRow, rawImage.getHeight(), Bitmap.Config.ARGB_8888);
+
+            tempBitmap.copyPixelsFromBuffer(rawPlane.getBuffer());
+            cleanedBitmap = Bitmap.createBitmap(tempBitmap, 0, 0, rawImage.getWidth(), rawImage.getHeight());
         } else {
-            _width = rawImage.getWidth();
-            _height = rawImage.getHeight();
             cleanedBitmap = Bitmap.createBitmap(rawImage.getWidth(), rawImage.getHeight(), Bitmap.Config.ARGB_8888);
             cleanedBitmap.copyPixelsFromBuffer(rawPlane.getBuffer());
         }
+        _width = rawImage.getWidth();
+        _height = rawImage.getHeight();
         return cleanedBitmap;
     }
 
-    private Bitmap getResizedBitmap(Bitmap cleanBitmap, Image rawImage) {
+    private Bitmap getResizedBitmap(Bitmap cleanBitmap, Image rawImage) throws IllegalStateException {
         Bitmap resizedBitmap;
 
         resizedBitmap = Bitmap.createBitmap(cleanBitmap, 0, 0, rawImage.getWidth(), rawImage.getHeight(), _resizeMatrix, false);
@@ -128,7 +126,6 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      */
     private void sendStreamAsByteArray() {
         Intent intentToSend = new Intent(Constants._imageEventName);
-
         if (_parent.isLandscape()) {
             intentToSend.putExtra(Constants._imageWidth, _height);
             intentToSend.putExtra(Constants._imageHeight, _width);
@@ -136,6 +133,7 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
             intentToSend.putExtra(Constants._imageWidth, _width);
             intentToSend.putExtra(Constants._imageHeight, _height);
         }
+
         intentToSend.putExtra(Constants._imageDataName, _JPEGOutputStream.toByteArray());
 
         _parent.sendImage(intentToSend);
