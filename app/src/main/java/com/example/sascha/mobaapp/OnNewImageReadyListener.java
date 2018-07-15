@@ -126,14 +126,8 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      */
     private void sendStreamAsByteArray() {
         Intent intentToSend = new Intent(Constants._imageEventName);
-        if (_parent.isLandscape()) {
-            intentToSend.putExtra(Constants._imageWidth, _height);
-            intentToSend.putExtra(Constants._imageHeight, _width);
-        } else {
-            intentToSend.putExtra(Constants._imageWidth, _width);
-            intentToSend.putExtra(Constants._imageHeight, _height);
-        }
-
+        intentToSend.putExtra(Constants._imageWidth, _width);
+        intentToSend.putExtra(Constants._imageHeight, _height);
         intentToSend.putExtra(Constants._imageDataName, _JPEGOutputStream.toByteArray());
 
         _parent.sendImage(intentToSend);
