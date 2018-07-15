@@ -66,7 +66,9 @@ public class ImageSendService extends WebSocketServer {
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        Log.i("ImageSendService", "IsError");
+        if (Debug.InDebugging) {
+            Log.e("ImageSendService", "SocketFehler", ex);
+        }
     }
 
     @Override

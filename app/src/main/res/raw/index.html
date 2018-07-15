@@ -66,12 +66,25 @@
                     var width = json.width;
                     console.log("breite: " + width + " hoehe: " + height);
                     var imgCon = document.getElementById("stream");
-                    imgCon.height = height;
-                    imgCon.width = width;
+                    //imgCon.height = height;
+                    //imgCon.width = width;
                     var ratio = width / height;
 
+                    //Portrait mode
                     if(width < height){
+                        imgCon.height = window.innerHeight - 10;
+                        imgCon.width = (window.innerHeight - 10) * ratio;
+                    }
+                    else {
 
+                        if(((window.innerWidth - 10) / ratio) > (window.innerHeight - 10)){
+                            imgCon.height = window.innerHeight - 10;
+                            imgCon.width = (window.innerHeight - 10) * ratio;
+                        }
+                        else {
+                            imgCon.width = window.innerWidth - 10;
+                            imgCon.height = (window.innerWidth - 10) / ratio;
+                        }
                     }
 
                 }
