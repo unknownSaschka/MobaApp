@@ -19,7 +19,9 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,6 +31,7 @@ import android.os.Build;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -37,7 +40,6 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -56,8 +58,18 @@ public class MainActivity extends AppCompatActivity {
     private InetSocketAddress socketAddress;
     private DrawerLayout mDrawerLayout;
 
+    private LocalBroadcastManager _localBroadcaster;
+    private BroadcastReceiver _localListener = new BroadcastReceiver() {
+        //Gets only events from Type Constants._imageEventName
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            byte[] data = intent.getByteArrayExtra(Constants._imageDataName);
+            if (data != null) {
+                changeImage(data);
+            }
+        }
+    };
 
-    public CaptureService _CaptureService = null;
     public static final int REQUEST_CODE_SCREEN_CAPTURE = 69;
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -136,8 +148,6 @@ public class MainActivity extends AppCompatActivity {
         }
         if(httpSocket == null) return;
 
-
-
         //Abändern der angezeigten Daten
         TextView ipInfo = findViewById(R.id.yourIPText);
         //ipInfo.setText("Die IP-Adresse deines Gerätes:");
@@ -156,11 +166,8 @@ public class MainActivity extends AppCompatActivity {
 
         //generateQR(URI);
 
-
-        Bitmap test = BitmapFactory.decodeResource(getResources(), R.raw.animetest);
-
         if(socketAddress != null){
-            webSocketServer = new ImageSendService(socketAddress, test, getApplicationContext());
+            webSocketServer = new ImageSendService(socketAddress, getApplicationContext());
             webSocketServer.start();
         }
         else {
@@ -322,6 +329,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onStart(){
+        super.onStart();
+        _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
+        IntentFilter tempFilter = new IntentFilter(Constants._imageEventName);
+        _localBroadcaster.registerReceiver(_localListener, tempFilter);
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        _localBroadcaster.unregisterReceiver(_localListener);
+        _localBroadcaster = null;
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == REQUEST_CODE_SCREEN_CAPTURE){
             if(resultCode == Activity.RESULT_OK){
@@ -348,6 +370,12 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean getHTTPServerActive(){
         return httpServerActive;
+    }
+
+    private void changeImage(byte[] data){
+        Bitmap image = BitmapFactory.decodeByteArray(data,0, data.length);
+        ImageView view = findViewById(R.id.imageView);
+        view.setImageBitmap(image);
     }
 
     public void TryToStartCaptureService(){

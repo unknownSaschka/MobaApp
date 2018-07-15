@@ -34,7 +34,7 @@ public class ImageSendService extends WebSocketServer {
 
     };
 
-    public ImageSendService(InetSocketAddress address, Bitmap image, Context appContext) {
+    public ImageSendService(InetSocketAddress address, Context appContext) {
         super(address);
         if (Debug.InDebugging) {
             Log.i("Server", "Starte WebSocket Server");
