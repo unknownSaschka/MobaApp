@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.Image;
 import android.media.ImageReader;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -125,10 +124,10 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      * asks the parent to send the outputstream casted to bytearray.
      */
     private void sendStreamAsByteArray() {
-        Intent intentToSend = new Intent(Constants._imageEventName);
-        intentToSend.putExtra(Constants._imageWidth, _width);
-        intentToSend.putExtra(Constants._imageHeight, _height);
-        intentToSend.putExtra(Constants._imageDataName, _JPEGOutputStream.toByteArray());
+        Intent intentToSend = new Intent(Constants.IMAGE_EVENT_NAME);
+        intentToSend.putExtra(Constants.IMAGE_WIDTH, _width);
+        intentToSend.putExtra(Constants.IMAGE_HEIGHT, _height);
+        intentToSend.putExtra(Constants.IMAGE_DATA_NAME, _JPEGOutputStream.toByteArray());
 
         _parent.sendImage(intentToSend);
     }

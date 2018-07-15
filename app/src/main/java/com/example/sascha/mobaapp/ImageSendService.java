@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -20,12 +19,12 @@ public class ImageSendService extends WebSocketServer {
 
     private LocalBroadcastManager _localBroadcaster;
     private BroadcastReceiver _localListener = new BroadcastReceiver() {
-        //Gets only events from Type Constants._imageEventName
+        //Gets only events from Type Constants.IMAGE_EVENT_NAME
         @Override
         public void onReceive(Context context, Intent intent) {
-            byte[] data = intent.getByteArrayExtra(Constants._imageDataName);
-            int width = intent.getIntExtra(Constants._imageWidth, 0);
-            int height = intent.getIntExtra(Constants._imageHeight, 0);
+            byte[] data = intent.getByteArrayExtra(Constants.IMAGE_DATA_NAME);
+            int width = intent.getIntExtra(Constants.IMAGE_WIDTH, 0);
+            int height = intent.getIntExtra(Constants.IMAGE_HEIGHT, 0);
 
             if (data != null && width != 0 && height != 0) {
                 sendImage(data, width, height);
@@ -41,7 +40,7 @@ public class ImageSendService extends WebSocketServer {
         }
         WebSocketConnectionManager.clear();
         _localBroadcaster = LocalBroadcastManager.getInstance(appContext);
-        IntentFilter tempFilter = new IntentFilter(Constants._imageEventName);
+        IntentFilter tempFilter = new IntentFilter(Constants.IMAGE_EVENT_NAME);
         _localBroadcaster.registerReceiver(_localListener, tempFilter);
         Log.i("ImageSendService", "WebSocketServer läuft");
     }
