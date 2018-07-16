@@ -20,6 +20,7 @@ import android.graphics.Color;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -81,24 +82,9 @@ public class MainActivity extends AppCompatActivity {
     //TODO: integrate QR Code in ip change.
     public void generateQR(String ip) {
         ImageView qr = findViewById(R.id.QRImage);
-        int width = qr.getWidth();
-        int height = qr.getHeight();
 
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = null;
-        try {
-            bitMatrix = qrCodeWriter.encode("http://" + ip, BarcodeFormat.QR_CODE, width, height);
-        } catch (WriterException e) {
-            e.printStackTrace();
-        }
-        if (bitMatrix == null) return;
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                bitmap.setPixel(i, j, bitMatrix.get(i, j) ? Color.BLACK : Color.WHITE);
-            }
-        }
-        qr.setImageBitmap(bitmap);
+        QRGeneratorThread qrGenerator = new QRGeneratorThread(ip, qr, getApplicationContext());
+        qrGenerator.start();
     }
 
     private void startHttpServer(){
@@ -196,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
                 updateDisplayedValuesOff(addr);
             }
         }
+
+        generateQR(addr);
     }
 
     private void handleImageChange(Intent rawIntent) {
@@ -219,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
             case Constants.IMAGE_EVENT_NAME:
                 handleImageChange(rawIntent);
                 break;
+            case Constants.QR_CODE_EVENT:
+                setQRImage(rawIntent);
+                break;
             default:
                 return;
         }
@@ -227,7 +218,15 @@ public class MainActivity extends AppCompatActivity {
     private IntentFilter getIntentFilter() {
         IntentFilter toReturn = new IntentFilter(Constants.IMAGE_EVENT_NAME);
         toReturn.addAction(Constants.IP_ANSWER);
+        toReturn.addAction(Constants.QR_CODE_EVENT);
         return toReturn;
+    }
+
+    private void setQRImage(Intent data){
+        Parcelable p = data.getParcelableExtra(Constants.QR_CODE_DATA);
+        Bitmap b = (Bitmap) p;
+        ImageView imageView = findViewById(R.id.QRImage);
+        imageView.setImageBitmap(b);
     }
 
     private void initDrawer() {
