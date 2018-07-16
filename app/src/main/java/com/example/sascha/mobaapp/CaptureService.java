@@ -271,6 +271,18 @@ public class CaptureService extends Service {
         }
     }
 
+    private void handleSettingsUpdate(Intent rawIntent){
+        int quali = rawIntent.getIntExtra(Constants.SETTING_JPEG_QUALI, -1);
+        float scale = rawIntent.getFloatExtra(Constants.SETTING_SCALE, -1f);
+
+        if(quali != -1){
+            _JPEGQuality_shadow = quali;
+        }
+        if(scale != -1f){
+            _ScalingFactor_shadow = scale;
+        }
+    }
+
     private void initLocalBroadcaster() {
         if (_localBroadcaster == null) {
             _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
@@ -287,6 +299,7 @@ public class CaptureService extends Service {
 
     private IntentFilter getIntentFilter() {
         IntentFilter toReturn = new IntentFilter(Constants.CAPTURE_EVENT_NAME_COMMAND);
+        toReturn.addAction(Constants.SETTING_INFO_EVENT);
         return toReturn;
     }
 
@@ -298,6 +311,9 @@ public class CaptureService extends Service {
         switch (action) {
             case Constants.CAPTURE_EVENT_NAME_COMMAND:
                 handleCommand(rawIntent);
+                break;
+            case Constants.SETTING_INFO_EVENT:
+                handleSettingsUpdate(rawIntent);
                 break;
             default:
                 return;
