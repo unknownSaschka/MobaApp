@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.example.sascha.mobaapp.HTTP_Server;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -9,6 +9,9 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import com.example.sascha.mobaapp.Constants;
+import com.example.sascha.mobaapp.R;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -58,7 +61,7 @@ public class ServerService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent){
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("ServerService", "Application closed. Stop all Services");
         }
         stopServer();
@@ -149,7 +152,7 @@ public class ServerService extends Service {
         try {
             _httpSocket = new ServerSocket(Constants.DEFAULT_HTTP_SERVER_PORT);
         } catch (Exception e) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.d("HttpServer", "Could not Start.");
             }
         }
@@ -166,7 +169,7 @@ public class ServerService extends Service {
             _webSocketServer = new ImageSendService(_socketAddress, getApplicationContext());
             _webSocketServer.start();
         } else {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.e("Get IPadr", "Error by activeInetAddress");
             }
         }
@@ -185,17 +188,17 @@ public class ServerService extends Service {
         _httpServerActive = false;
 
         try {
-            if(Debug.InDebugging){
+            if(Constants.InDebugging){
                 Log.i("ServerService", "Server stoppen");
             }
             _webSocketServer.stop();
             _webSocketServer = null;
         } catch (IOException e) {
-            if(Debug.InDebugging){
+            if(Constants.InDebugging){
                 Log.e("ServerService", "IOException bei WebSocket", e);
             }
         } catch (InterruptedException e) {
-            if(Debug.InDebugging){
+            if(Constants.InDebugging){
                 Log.e("ServerService", "InterrupException bei WebSocket", e);
             }
         }
@@ -280,7 +283,7 @@ public class ServerService extends Service {
     }
 
     public void handleXML(){
-        XMLService xml = new XMLService(getApplicationContext());
+        XMLUtils xml = new XMLUtils(getApplicationContext());
         xml.handleXML();
     }
 }

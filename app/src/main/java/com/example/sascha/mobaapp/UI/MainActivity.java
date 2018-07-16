@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.example.sascha.mobaapp.UI;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -31,6 +31,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.content.Intent;
 import android.widget.Toast;
+
+import com.example.sascha.mobaapp.Capturing.CaptureService;
+import com.example.sascha.mobaapp.Constants;
+import com.example.sascha.mobaapp.R;
+import com.example.sascha.mobaapp.HTTP_Server.ServerService;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout _DrawerLayout;
@@ -170,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
             Intent temp = new Intent(Constants.IP_REQUEST);
             _localBroadcaster.sendBroadcast(temp);
         } else {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("LocalBroadcast Main", "Illegal State access");
             }
         }
@@ -202,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
             Intent temp = new Intent(Constants.IP_REQUEST);
             _localBroadcaster.sendBroadcast(temp);
         } else {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("LocalBroadcast Main", "Illegal State access");
             }
         }
@@ -304,12 +309,12 @@ public class MainActivity extends AppCompatActivity {
     private void checkAndAskForInternetPermission() {
         //Prüfe auf Permissions für Internet
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("Main", "Keine Perms");
             }
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, Constants.INTERNET_PERMISSION);
         } else {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("Main", "Hat Perms");
             }
         }
@@ -319,13 +324,13 @@ public class MainActivity extends AppCompatActivity {
         MediaProjectionManager temp = null;
         //Result checking in callback methode onActivityResult()
         try {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.d("BeforeServiceStart", "Now trying to get Mediamanager.");
             }
             temp = (MediaProjectionManager) getSystemService(getApplicationContext().MEDIA_PROJECTION_SERVICE);
             startActivityForResult(temp.createScreenCaptureIntent(), Constants.REQUEST_CODE_SCREEN_CAPTURE);
         } catch (Exception ex) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.d("BeforeServiceStart", ex.getMessage());
             }
         }
@@ -371,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                 toSend.putExtra(Constants.CAPTURE_MEDIA_GRANTING_TOKEN_INTENT, data);
                 _localBroadcaster.sendBroadcast(toSend);
             } else {
-                if (Debug.InDebugging) {
+                if (Constants.InDebugging) {
                     Log.d("BeforeServiceStarting", "Request failed.");
                 }
             }

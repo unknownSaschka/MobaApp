@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.example.sascha.mobaapp.Capturing;
 
 import android.app.Activity;
 import android.app.Service;
@@ -26,6 +26,8 @@ import android.view.Display;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.WindowManager;
+
+import com.example.sascha.mobaapp.Constants;
 
 public class CaptureService extends Service {
     private MediaProjection.Callback ProjectionCallback = new MediaProjection.Callback() {
@@ -101,21 +103,21 @@ public class CaptureService extends Service {
             }
         };
         _rotationListener.enable();
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("Service", "Capture Service starting");
         }
 
         _ScreenCapturer = ((MediaProjectionManager) getSystemService(getApplicationContext().MEDIA_PROJECTION_SERVICE)).getMediaProjection(Activity.RESULT_OK, captureTokenIntent);
         _ScreenCapturer.registerCallback(ProjectionCallback, new Handler(Looper.getMainLooper()));
         _ScreenToCapture = ((WindowManager) getSystemService(getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("Service", "Booted Capturing.");
         }
 
         _ImageThread = new HandlerThread("ImageGenerator");
         _ImageThread.start();
         _ImageThreadHandler = new Handler(_ImageThread.getLooper());
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("Service", "Thread started.");
         }
         updateRotation();
@@ -128,7 +130,7 @@ public class CaptureService extends Service {
      */
     private synchronized void restartCapturing() {
         synchronized (this) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("CaptureService", "Restart");
             }
             stopCapturing();
@@ -159,11 +161,11 @@ public class CaptureService extends Service {
                         screenSize.x, screenSize.y,
                         metric.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION,
                         _ImageProcessor.getSurface(), null, _ImageThreadHandler);
-                if (Debug.InDebugging) {
+                if (Constants.InDebugging) {
                     Log.i("Service", "Created Virtual Display.");
                 }
             } catch (Exception e) {
-                if (Debug.InDebugging) {
+                if (Constants.InDebugging) {
                     Log.d("Service", "Could not create virtual display");
                 }
             }
@@ -200,7 +202,7 @@ public class CaptureService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent){
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("CaptureService", "Application closed. Stopping myself");
         }
         cleanService();

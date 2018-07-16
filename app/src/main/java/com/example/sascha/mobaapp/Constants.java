@@ -1,6 +1,9 @@
 package com.example.sascha.mobaapp;
 
 public abstract class Constants {
+    //Debug switch
+    public static boolean InDebugging = true;
+
     //Used for Image broadcasting
     public static final String IMAGE_EVENT_NAME = "image";
     public static final String IMAGE_WIDTH = "image_width";

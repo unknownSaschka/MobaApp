@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.example.sascha.mobaapp.UI;
 
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.support.v4.content.LocalBroadcastManager;
 import android.widget.ImageView;
 
+import com.example.sascha.mobaapp.Constants;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;

@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.example.sascha.mobaapp.Capturing;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -6,6 +6,8 @@ import android.graphics.Matrix;
 import android.media.Image;
 import android.media.ImageReader;
 import android.util.Log;
+
+import com.example.sascha.mobaapp.Constants;
 
 import java.io.ByteArrayOutputStream;
 
@@ -61,7 +63,7 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
             tempImage = _ImageReader.acquireLatestImage();
             return tempImage;
         } catch (Exception e) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.d("ImageReader", "Could not read Image.");
             }
             return null;
