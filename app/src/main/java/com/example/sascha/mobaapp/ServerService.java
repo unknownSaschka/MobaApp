@@ -248,9 +248,9 @@ public class ServerService extends Service {
         Intent toSend = new Intent(Constants.IP_ANSWER);
         toSend.putExtra(Constants.IP_ANSWER_ADDRESS, _ipAddress);
         if (_httpServerActive) {
-            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_ISRUNNING_TRUE);
+            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_IS_RUNNING_TRUE);
         } else {
-            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_ISRUNNING_FALSE);
+            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_IS_RUNNING_FALSE);
         }
         _localBroadcaster.sendBroadcast(toSend);
     }
