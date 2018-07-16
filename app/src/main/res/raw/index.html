@@ -2,8 +2,6 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
-    <script src="https://rtcmulticonnection.herokuapp.com/dist/RTCMultiConnection.min.js"></script>
-    <script src="https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"></script>
 </head>
 <body>
     <style>
@@ -20,31 +18,12 @@
          document.addEventListener('DOMContentLoaded', init, false);
          var socket;
          function init(){
-
-            /*
-            var connection = new RTCMultiConnection();
-            connection.socketURL = '224.0.2.24';
-            */
-
-            //var temp = window.document.getElementById("testbutton");
-            //temp.addEventListener("click", sendPing, false);
-
-            //var imgCon = document.getElementById("stream");
-            //console.log("availHeight: " + window.screen.availHeight + " availWidth: " + window.screen.availWidth);
-
-
-
             var url = 'ws://%%';
 	        socket = new WebSocket(url);
 	        socket.onopen=sendenMoeglich;
 	        socket.onclose=Closing;
 	        socket.onerror=ErrorHandler;
 	        socket.onmessage=empfange;
-
-         }
-
-         function sendPing(){
-            socket.send("Ping");
          }
 
          function ErrorHandler(event){
@@ -56,12 +35,9 @@
                 var img = message.data;
 
                 if(img instanceof Blob){
-                    //var blob = new Blob(message.data, { type: "image/jpeg" } );
                     var urlCreator = window.URL || window.webkitURL;
                     var imageUrl = urlCreator.createObjectURL(img);
                     var imgCon = document.getElementById("stream");
-                    //imgCon.height = window.screen.height;
-                    //imgCon.width = window.screen.width;
                     imgCon.src = imageUrl;
                 }
                 else {
@@ -71,8 +47,6 @@
                     var width = json.width;
                     console.log("breite: " + width + " hoehe: " + height);
                     var imgCon = document.getElementById("stream");
-                    //imgCon.height = height;
-                    //imgCon.width = width;
                     var ratio = width / height;
 
                     //Portrait mode
@@ -81,7 +55,6 @@
                         imgCon.width = (window.innerHeight - 10) * ratio;
                     }
                     else {
-
                         if(((window.innerWidth - 10) / ratio) > (window.innerHeight - 10)){
                             imgCon.height = window.innerHeight - 10;
                             imgCon.width = (window.innerHeight - 10) * ratio;
@@ -91,7 +64,6 @@
                             imgCon.height = (window.innerWidth - 10) / ratio;
                         }
                     }
-
                 }
          }
 
