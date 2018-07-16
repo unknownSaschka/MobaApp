@@ -52,6 +52,7 @@ public class ServerService extends Service {
     public void onCreate() {
         _ipAddress = getIpAddr();
         initLocalBroadcaster();
+        handleIpRequest();
         handleXML();
     }
 
@@ -146,7 +147,7 @@ public class ServerService extends Service {
         _ipAddress = getIpAddr();
         _httpSocket = null;
         try {
-            _httpSocket = new ServerSocket(Constants.HTTP_SERVER_PORT);
+            _httpSocket = new ServerSocket(Constants.DEFAULT_HTTP_SERVER_PORT);
         } catch (Exception e) {
             if (Debug.InDebugging) {
                 Log.d("HttpServer", "Could not Start.");

@@ -30,8 +30,12 @@ public abstract class Constants {
     public static final String CAPTURE_STOP = "server.capture.command.stop";
 
     //Used for Http-Server
-    public static final int INET_PERMS = 1;
-    public static int HTTP_SERVER_PORT = 8080;
+    public static final int INTERNET_PERMISSION = 1;
+    public static int DEFAULT_HTTP_SERVER_PORT = 8080;
+
+    //Used for Image generation
+    public static int DEFAULT_JPEG_QUALI = 50;
+    public static float DEFAULT_SCALING_FACTOR = 0.5f;
 
     //Used for starting Capturing
     public static final int REQUEST_CODE_SCREEN_CAPTURE = 69;
@@ -43,7 +47,11 @@ public abstract class Constants {
     //Used for XML
     public static final String XML_Filename = "settings.xml";
 
+    //Used for Setting broadcasting
+    public static final String SETTING_REQUEST = "setting.request";
+    public static final String SETTING_INFO_EVENT = "setting.info.event";
+    public static final String SETTING_SERVER_PORT = "setting.server.port";
+    public static final String SETTING_JPEG_QUALI = "setting.quali";
+    public static final String SETTING_SCALE = "setting.scale";
 
-    //_JPEGOutputStream.toByteArray()
-    //Bitmap blarg = BitmapFactory.decodeByteArray(_JPEGOutputStream.toByteArray(), 0, _JPEGOutputStream.toByteArray().length);
 }

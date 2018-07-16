@@ -12,10 +12,9 @@ import java.io.ByteArrayOutputStream;
 public class OnNewImageReadyListener implements ImageReader.OnImageAvailableListener {
     private CaptureService _parent;
     private ByteArrayOutputStream _JPEGOutputStream = new ByteArrayOutputStream();
-    private int _JPEGQuality = 50;
     private Matrix _resizeMatrix = new Matrix();
 
-    //Holds the correct Image Data after cleanup as long the image is still in process.
+    //Holds the correct Image Data after clearing the  as long the image is still in process.
     private int _width = 0;
     private int _height = 0;
 
@@ -27,7 +26,8 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
     public synchronized void onImageAvailable(ImageReader _ImageReader) {
         synchronized (_parent) {
             Image tempImage = tryToGetLatestImage(_ImageReader);
-            _resizeMatrix.setScale(0.5f, 0.5f);
+            float tempScale = _parent.get_ScalingFactor_shadow();
+            _resizeMatrix.setScale(tempScale, tempScale);
 
             if (tempImage == null) {
                 return;
@@ -117,7 +117,7 @@ public class OnNewImageReadyListener implements ImageReader.OnImageAvailableList
      */
     private void compressAsJPEG(Bitmap bitmapToCompress) {
         _JPEGOutputStream.reset();
-        bitmapToCompress.compress(Bitmap.CompressFormat.JPEG, _JPEGQuality, _JPEGOutputStream);
+        bitmapToCompress.compress(Bitmap.CompressFormat.JPEG, _parent.get_JPEGQuality_shadow(), _JPEGOutputStream);
     }
 
     /**

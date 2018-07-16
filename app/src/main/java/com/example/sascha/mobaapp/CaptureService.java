@@ -48,6 +48,9 @@ public class CaptureService extends Service {
         }
     };
 
+    private int _JPEGQuality_shadow = Constants.DEFAULT_JPEG_QUALI;
+    private float _ScalingFactor_shadow = Constants.DEFAULT_SCALING_FACTOR;
+
     //Image generation should run in an extra Thread.
     private HandlerThread _ImageThread = null;
     private Handler _ImageThreadHandler = null;
@@ -55,6 +58,7 @@ public class CaptureService extends Service {
     private int _Orientation = Configuration.ORIENTATION_UNDEFINED;
     private int _LastOrientation = Configuration.ORIENTATION_UNDEFINED;
     private OrientationEventListener _rotationListener;
+
     private boolean isInitialized = false;
     private boolean isCapturing = false;
 
@@ -82,8 +86,6 @@ public class CaptureService extends Service {
     }
 
     /**
-     * When you clean and init this service, the image listener stops working.
-     * It's a mystery for me. If you know why, contact me.
      * @param captureTokenIntent needs to get the granting Token Intent.
      */
     private synchronized void initService(Intent captureTokenIntent) {
@@ -192,7 +194,16 @@ public class CaptureService extends Service {
             _ImageThread.quit();
             _rotationListener.disable();
             isInitialized = false;
+            stopSelf();
         }
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent){
+        if (Debug.InDebugging) {
+            Log.i("CaptureService", "Application closed. Stopping myself");
+        }
+        cleanService();
     }
 
     /**
@@ -204,6 +215,14 @@ public class CaptureService extends Service {
         if (_localBroadcaster != null) {
             _localBroadcaster.sendBroadcast(intentToSend);
         }
+    }
+
+    public int get_JPEGQuality_shadow(){
+        return  _JPEGQuality_shadow;
+    }
+
+    public float get_ScalingFactor_shadow(){
+        return _ScalingFactor_shadow;
     }
 
     /**
