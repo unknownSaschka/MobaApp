@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
             toSend.putExtra(Constants.SERVER_HTTP_COMMAND, Constants.SERVER_HTTP_STOP);
             _localBroadcaster.sendBroadcast(toSend);
         }
-        requestIpUpdate();
     }
 
     private void initStartButton(){
@@ -131,6 +130,12 @@ public class MainActivity extends AppCompatActivity {
             toSend.putExtra(Constants.CAPTURE_COMMAND, Constants.CAPTURE_STOP);
             _localBroadcaster.sendBroadcast(toSend);
         }
+        requestIpUpdate();
+    }
+
+    public void resetImage(){
+        ImageView temp = findViewById(R.id.imageView);
+        temp.setImageBitmap(null);
     }
 
     private void updateDisplayedValuesOn(String ipAddress) {
