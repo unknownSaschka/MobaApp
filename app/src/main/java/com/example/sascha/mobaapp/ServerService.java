@@ -52,6 +52,7 @@ public class ServerService extends Service {
     public void onCreate() {
         _ipAddress = getIpAddr();
         initLocalBroadcaster();
+        handleXML();
     }
 
     @Override
@@ -160,8 +161,6 @@ public class ServerService extends Service {
         _serverThread.start();
         _httpServerActive = true;
 
-        //generateQR(URI);
-
         if (_socketAddress != null) {
             _webSocketServer = new ImageSendService(_socketAddress, getApplicationContext());
             _webSocketServer.start();
@@ -177,10 +176,8 @@ public class ServerService extends Service {
             return;
         }
 
-        //_serverThread.interrupt();
         try {
             _httpSocket.close();
-            //_httpSocket = new ServerSocket(HTTP_SERVER_PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -202,7 +199,6 @@ public class ServerService extends Service {
             }
         }
         WebSocketConnectionManager.clear();
-
     }
 
     @Override
@@ -280,5 +276,10 @@ public class ServerService extends Service {
             default:
                 return;
         }
+    }
+
+    public void handleXML(){
+        XMLService xml = new XMLService(getApplicationContext());
+        xml.handleXML();
     }
 }
