@@ -10,7 +10,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -71,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
         initDrawer();
 
-        startHttpService();
+        startService(new Intent(getApplicationContext(), ServerService.class));
+        startService(new Intent(getApplicationContext(), CaptureService.class));
 
         initLocalBroadcaster();
 
@@ -105,10 +105,6 @@ public class MainActivity extends AppCompatActivity {
         requestIpUpdate();
     }
 
-    private void startHttpService(){
-        startService(new Intent(getApplicationContext(), ServerService.class));
-    }
-
     private void initStartButton(){
         Button startButton = findViewById(R.id.buttonStart);
         startButton.setText(R.string.buttonStart);
@@ -118,15 +114,23 @@ public class MainActivity extends AppCompatActivity {
                 if(MainActivity.this._IsHttpServerRunning_shadow) {
                     Toast.makeText(MainActivity.this, "Server wird gestoppt", Toast.LENGTH_SHORT).show();
                     MainActivity.this.stopHttpServer();
+                    MainActivity.this.stopCapturing();
                     return;
                 }
                 Toast.makeText(MainActivity.this, "Server wird gestartet", Toast.LENGTH_SHORT).show();
                 MainActivity.this.startHttpServer();
-
                 MainActivity.this.TryToStartCaptureService();
             }
         };
         startButton.setOnClickListener(listenerToSet);
+    }
+
+    private void stopCapturing(){
+        if(_localBroadcaster != null){
+            Intent toSend = new Intent(Constants.CAPTURE_EVENT_NAME_COMMAND);
+            toSend.putExtra(Constants.CAPTURE_COMMAND, Constants.CAPTURE_STOP);
+            _localBroadcaster.sendBroadcast(toSend);
+        }
     }
 
     private void updateDisplayedValuesOn(String ipAddress) {
@@ -174,10 +178,10 @@ public class MainActivity extends AppCompatActivity {
         String isRunning = rawIntent.getStringExtra(Constants.IP_ANSWER_FLAG_RUN);
 
         if(addr != null && isRunning != null){
-            if(isRunning == Constants.SERVER_HTTP_ISRUNNING_TRUE){
+            if(isRunning == Constants.SERVER_HTTP_IS_RUNNING_TRUE){
                 _IsHttpServerRunning_shadow = true;
                 updateDisplayedValuesOn(addr);
-            }else if(isRunning == Constants.SERVER_HTTP_ISRUNNING_FALSE){
+            }else if(isRunning == Constants.SERVER_HTTP_IS_RUNNING_FALSE){
                 _IsHttpServerRunning_shadow = false;
                 updateDisplayedValuesOff(addr);
             }
@@ -325,7 +329,10 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == Constants.REQUEST_CODE_SCREEN_CAPTURE) {
             if (resultCode == Activity.RESULT_OK) {
-                startService(new Intent(getApplicationContext(), CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
+                Intent toSend = new Intent(Constants.CAPTURE_EVENT_NAME_COMMAND);
+                toSend.putExtra(Constants.CAPTURE_COMMAND, Constants.CAPTURE_INIT);
+                toSend.putExtra(Constants.CAPTURE_MEDIA_GRANTING_TOKEN_INTENT, data);
+                _localBroadcaster.sendBroadcast(toSend);
             } else {
                 if (Debug.InDebugging) {
                     Log.d("BeforeServiceStarting", "Request failed.");
