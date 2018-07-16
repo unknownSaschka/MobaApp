@@ -35,6 +35,7 @@ public class ImageSendService extends WebSocketServer {
 
     public ImageSendService(InetSocketAddress address, Context appContext) {
         super(address);
+        setReuseAddr(true);
         if (Debug.InDebugging) {
             Log.i("Server", "Starte WebSocket Server");
         }
@@ -68,12 +69,13 @@ public class ImageSendService extends WebSocketServer {
         if (Debug.InDebugging) {
             Log.e("ImageSendService", "SocketFehler", ex);
         }
+
     }
 
     @Override
     public void onStart() {
         if (Debug.InDebugging) {
-            Log.i("Server", "SocketServer gestartet");
+            Log.i("ImageSendService", "SocketServer gestartet");
         }
     }
 
@@ -93,5 +95,8 @@ public class ImageSendService extends WebSocketServer {
     public void stop() throws IOException, InterruptedException {
         super.stop();
         _localBroadcaster.unregisterReceiver(_localListener);
+        if (Debug.InDebugging) {
+            Log.i("ImageSendService", "SocketServer stoppen");
+        }
     }
 }

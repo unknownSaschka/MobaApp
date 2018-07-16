@@ -1,5 +1,7 @@
 package com.example.sascha.mobaapp;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -18,6 +20,9 @@ public class HttpResponseThread extends Thread {
     @Override
     public void run() {
         PrintWriter out = null;
+        if (Debug.InDebugging) {
+            Log.i("HTTPResponseThread", "Verarbeitet Client");
+        }
 
         try {
             out = new PrintWriter(socket.getOutputStream(), true);
@@ -27,10 +32,15 @@ public class HttpResponseThread extends Thread {
 
         if (out == null) return;
 
-
+        if (Debug.InDebugging) {
+            Log.i("HTTPResponseThread", "Schreibe HTML raus");
+        }
         writeHTML(out, html);
 
         try {
+            if (Debug.InDebugging) {
+                Log.i("HTTPResponseThread", "Schließe Socket");
+            }
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();

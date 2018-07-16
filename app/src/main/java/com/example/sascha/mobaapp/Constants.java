@@ -36,6 +36,10 @@ public abstract class Constants {
     //Used for starting Capturing
     public static final int REQUEST_CODE_SCREEN_CAPTURE = 69;
 
+    //For QR Code generator
+    public static final String QR_CODE_EVENT = "qr.code.event";
+    public static final String QR_CODE_DATA = "qr.code.data";
+
     //_JPEGOutputStream.toByteArray()
     //Bitmap blarg = BitmapFactory.decodeByteArray(_JPEGOutputStream.toByteArray(), 0, _JPEGOutputStream.toByteArray().length);
 }

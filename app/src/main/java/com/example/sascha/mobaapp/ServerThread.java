@@ -26,6 +26,9 @@ public class ServerThread extends Thread {
                     Log.i("ServerThread", "Wartet...");
                 }
                 socket = httpSocket.accept();
+                if (Debug.InDebugging) {
+                    Log.i("ServerThread", "Neuer Client");
+                }
                 if (socket == null || httpSocket == null) {
                     return;
                 }
