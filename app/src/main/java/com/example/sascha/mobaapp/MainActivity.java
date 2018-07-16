@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
         return toReturn;
     }
 
-    private void setQRImage(Intent data){
+    private synchronized void setQRImage(Intent data){
         Parcelable p = data.getParcelableExtra(Constants.QR_CODE_DATA);
         Bitmap b = (Bitmap) p;
         ImageView imageView = findViewById(R.id.QRImage);
