@@ -52,6 +52,17 @@ public class ServerService extends Service {
     public void onCreate() {
         _ipAddress = getIpAddr();
         initLocalBroadcaster();
+        handleXML();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent){
+        if (Debug.InDebugging) {
+            Log.i("ServerService", "Application closed. Stop all Services");
+        }
+        stopServer();
+
+        stopSelf();
     }
 
     public String indexToHTML(String ipAddress) {
@@ -65,13 +76,10 @@ public class ServerService extends Service {
         try {
             while ((bytesRead = br.read(contents)) != -1) {
                 strFileContents = new String(contents, 0, bytesRead);
-                //System.out.println("Auf html parsen: " + strFileContents);
                 if (strFileContents.equals("%")) {
-                    //System.out.println("Erstes %");
                     if ((bytesRead = br.read(contents)) != -1) {
                         strFileContents = new String(contents, 0, bytesRead);
                         if (strFileContents.equals("%")) {
-                            System.out.println("Ersetzen durch ip adresse");
                             strFileContents = ipAddress + ":8887";
                         } else {
                             strFileContents = "%" + strFileContents;
@@ -90,7 +98,6 @@ public class ServerService extends Service {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(html);
         return html;
     }
 
@@ -154,8 +161,6 @@ public class ServerService extends Service {
         _serverThread.start();
         _httpServerActive = true;
 
-        //generateQR(URI);
-
         if (_socketAddress != null) {
             _webSocketServer = new ImageSendService(_socketAddress, getApplicationContext());
             _webSocketServer.start();
@@ -171,26 +176,29 @@ public class ServerService extends Service {
             return;
         }
 
-        //_serverThread.interrupt();
         try {
             _httpSocket.close();
-            //_httpSocket = new ServerSocket(HTTP_SERVER_PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }
         _httpServerActive = false;
 
         try {
-            System.out.println("Server stoppen");
+            if(Debug.InDebugging){
+                Log.i("ServerService", "Server stoppen");
+            }
             _webSocketServer.stop();
             _webSocketServer = null;
         } catch (IOException e) {
-
+            if(Debug.InDebugging){
+                Log.e("ServerService", "IOException bei WebSocket", e);
+            }
         } catch (InterruptedException e) {
-
+            if(Debug.InDebugging){
+                Log.e("ServerService", "InterrupException bei WebSocket", e);
+            }
         }
         WebSocketConnectionManager.clear();
-
     }
 
     @Override
@@ -248,9 +256,9 @@ public class ServerService extends Service {
         Intent toSend = new Intent(Constants.IP_ANSWER);
         toSend.putExtra(Constants.IP_ANSWER_ADDRESS, _ipAddress);
         if (_httpServerActive) {
-            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_ISRUNNING_TRUE);
+            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_IS_RUNNING_TRUE);
         } else {
-            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_ISRUNNING_FALSE);
+            toSend.putExtra(Constants.IP_ANSWER_FLAG_RUN, Constants.SERVER_HTTP_IS_RUNNING_FALSE);
         }
         _localBroadcaster.sendBroadcast(toSend);
     }
@@ -268,5 +276,10 @@ public class ServerService extends Service {
             default:
                 return;
         }
+    }
+
+    public void handleXML(){
+        XMLService xml = new XMLService(getApplicationContext());
+        xml.handleXML();
     }
 }

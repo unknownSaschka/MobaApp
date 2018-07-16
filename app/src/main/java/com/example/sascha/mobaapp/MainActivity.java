@@ -10,7 +10,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -20,6 +19,7 @@ import android.graphics.Color;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -70,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
         initDrawer();
 
-        startHttpService();
+        startService(new Intent(getApplicationContext(), ServerService.class));
+        startService(new Intent(getApplicationContext(), CaptureService.class));
 
         initLocalBroadcaster();
 
@@ -81,24 +82,9 @@ public class MainActivity extends AppCompatActivity {
     //TODO: integrate QR Code in ip change.
     public void generateQR(String ip) {
         ImageView qr = findViewById(R.id.QRImage);
-        int width = qr.getWidth();
-        int height = qr.getHeight();
 
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = null;
-        try {
-            bitMatrix = qrCodeWriter.encode("http://" + ip, BarcodeFormat.QR_CODE, width, height);
-        } catch (WriterException e) {
-            e.printStackTrace();
-        }
-        if (bitMatrix == null) return;
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                bitmap.setPixel(i, j, bitMatrix.get(i, j) ? Color.BLACK : Color.WHITE);
-            }
-        }
-        qr.setImageBitmap(bitmap);
+        QRGeneratorThread qrGenerator = new QRGeneratorThread(ip, qr, getApplicationContext());
+        qrGenerator.start();
     }
 
     private void startHttpServer(){
@@ -116,11 +102,6 @@ public class MainActivity extends AppCompatActivity {
             toSend.putExtra(Constants.SERVER_HTTP_COMMAND, Constants.SERVER_HTTP_STOP);
             _localBroadcaster.sendBroadcast(toSend);
         }
-        requestIpUpdate();
-    }
-
-    private void startHttpService(){
-        startService(new Intent(getApplicationContext(), ServerService.class));
     }
 
     private void initStartButton(){
@@ -132,15 +113,29 @@ public class MainActivity extends AppCompatActivity {
                 if(MainActivity.this._IsHttpServerRunning_shadow) {
                     Toast.makeText(MainActivity.this, "Server wird gestoppt", Toast.LENGTH_SHORT).show();
                     MainActivity.this.stopHttpServer();
+                    MainActivity.this.stopCapturing();
                     return;
                 }
                 Toast.makeText(MainActivity.this, "Server wird gestartet", Toast.LENGTH_SHORT).show();
                 MainActivity.this.startHttpServer();
-
                 MainActivity.this.TryToStartCaptureService();
             }
         };
         startButton.setOnClickListener(listenerToSet);
+    }
+
+    private void stopCapturing(){
+        if(_localBroadcaster != null){
+            Intent toSend = new Intent(Constants.CAPTURE_EVENT_NAME_COMMAND);
+            toSend.putExtra(Constants.CAPTURE_COMMAND, Constants.CAPTURE_STOP);
+            _localBroadcaster.sendBroadcast(toSend);
+        }
+        requestIpUpdate();
+    }
+
+    public void resetImage(){
+        ImageView temp = findViewById(R.id.imageView);
+        temp.setImageBitmap(null);
     }
 
     private void updateDisplayedValuesOn(String ipAddress) {
@@ -188,14 +183,16 @@ public class MainActivity extends AppCompatActivity {
         String isRunning = rawIntent.getStringExtra(Constants.IP_ANSWER_FLAG_RUN);
 
         if(addr != null && isRunning != null){
-            if(isRunning == Constants.SERVER_HTTP_ISRUNNING_TRUE){
+            if(isRunning == Constants.SERVER_HTTP_IS_RUNNING_TRUE){
                 _IsHttpServerRunning_shadow = true;
                 updateDisplayedValuesOn(addr);
-            }else if(isRunning == Constants.SERVER_HTTP_ISRUNNING_FALSE){
+            }else if(isRunning == Constants.SERVER_HTTP_IS_RUNNING_FALSE){
                 _IsHttpServerRunning_shadow = false;
                 updateDisplayedValuesOff(addr);
             }
         }
+
+        generateQR(addr);
     }
 
     private void handleImageChange(Intent rawIntent) {
@@ -219,6 +216,9 @@ public class MainActivity extends AppCompatActivity {
             case Constants.IMAGE_EVENT_NAME:
                 handleImageChange(rawIntent);
                 break;
+            case Constants.QR_CODE_EVENT:
+                setQRImage(rawIntent);
+                break;
             default:
                 return;
         }
@@ -227,7 +227,15 @@ public class MainActivity extends AppCompatActivity {
     private IntentFilter getIntentFilter() {
         IntentFilter toReturn = new IntentFilter(Constants.IMAGE_EVENT_NAME);
         toReturn.addAction(Constants.IP_ANSWER);
+        toReturn.addAction(Constants.QR_CODE_EVENT);
         return toReturn;
+    }
+
+    private synchronized void setQRImage(Intent data){
+        Parcelable p = data.getParcelableExtra(Constants.QR_CODE_DATA);
+        Bitmap b = (Bitmap) p;
+        ImageView imageView = findViewById(R.id.QRImage);
+        imageView.setImageBitmap(b);
     }
 
     private void initDrawer() {
@@ -326,7 +334,10 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == Constants.REQUEST_CODE_SCREEN_CAPTURE) {
             if (resultCode == Activity.RESULT_OK) {
-                startService(new Intent(getApplicationContext(), CaptureService.class).putExtra(Intent.EXTRA_INTENT, data));
+                Intent toSend = new Intent(Constants.CAPTURE_EVENT_NAME_COMMAND);
+                toSend.putExtra(Constants.CAPTURE_COMMAND, Constants.CAPTURE_INIT);
+                toSend.putExtra(Constants.CAPTURE_MEDIA_GRANTING_TOKEN_INTENT, data);
+                _localBroadcaster.sendBroadcast(toSend);
             } else {
                 if (Debug.InDebugging) {
                     Log.d("BeforeServiceStarting", "Request failed.");
