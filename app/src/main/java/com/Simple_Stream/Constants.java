@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.Simple_Stream;
 
 public abstract class Constants {
     //Debug switch

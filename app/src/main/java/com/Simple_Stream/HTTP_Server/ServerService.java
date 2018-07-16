@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp.HTTP_Server;
+package com.Simple_Stream.HTTP_Server;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -10,8 +10,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.example.sascha.mobaapp.Constants;
-import com.example.sascha.mobaapp.R;
+import com.Simple_Stream.Constants;
+import com.Simple_Stream.R;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

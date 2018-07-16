@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp.Capturing;
+package com.Simple_Stream.Capturing;
 
 import android.app.Activity;
 import android.app.Service;
@@ -27,7 +27,7 @@ import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import com.example.sascha.mobaapp.Constants;
+import com.Simple_Stream.Constants;
 
 public class CaptureService extends Service {
     private MediaProjection.Callback ProjectionCallback = new MediaProjection.Callback() {

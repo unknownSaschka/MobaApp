@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp.Capturing;
+package com.Simple_Stream.Capturing;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,7 +7,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.util.Log;
 
-import com.example.sascha.mobaapp.Constants;
+import com.Simple_Stream.Constants;
 
 import java.io.ByteArrayOutputStream;
 

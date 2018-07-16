@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp.HTTP_Server;
+package com.Simple_Stream.HTTP_Server;
 
 
 import android.content.BroadcastReceiver;
@@ -8,7 +8,7 @@ import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.example.sascha.mobaapp.Constants;
+import com.Simple_Stream.Constants;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;

@@ -1,8 +1,8 @@
-package com.example.sascha.mobaapp.HTTP_Server;
+package com.Simple_Stream.HTTP_Server;
 
 import android.util.Log;
 
-import com.example.sascha.mobaapp.Constants;
+import com.Simple_Stream.Constants;
 
 import java.io.IOException;
 import java.io.PrintWriter;

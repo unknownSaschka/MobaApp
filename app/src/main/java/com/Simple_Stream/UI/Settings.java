@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp.UI;
+package com.Simple_Stream.UI;
 
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.EditText;
 
-import com.example.sascha.mobaapp.R;
+import com.Simple_Stream.R;
 
 public class Settings extends AppCompatActivity {
     DrawerLayout mDrawerLayout;

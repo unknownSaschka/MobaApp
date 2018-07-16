@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp.UI;
+package com.Simple_Stream.UI;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -32,10 +32,10 @@ import android.widget.TextView;
 import android.content.Intent;
 import android.widget.Toast;
 
-import com.example.sascha.mobaapp.Capturing.CaptureService;
-import com.example.sascha.mobaapp.Constants;
-import com.example.sascha.mobaapp.R;
-import com.example.sascha.mobaapp.HTTP_Server.ServerService;
+import com.Simple_Stream.Capturing.CaptureService;
+import com.Simple_Stream.Constants;
+import com.Simple_Stream.R;
+import com.Simple_Stream.HTTP_Server.ServerService;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout _DrawerLayout;
