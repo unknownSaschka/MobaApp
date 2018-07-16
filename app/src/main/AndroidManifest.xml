@@ -34,10 +34,12 @@
 
         <service
             android:name=".CaptureService"
+            android:stopWithTask="false"
             android:exported="false" />
 
         <service
             android:name=".ServerService"
+            android:stopWithTask="false"
             android:exported="false" />
 
         <meta-data

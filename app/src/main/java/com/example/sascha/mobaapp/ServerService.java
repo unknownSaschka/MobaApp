@@ -54,6 +54,16 @@ public class ServerService extends Service {
         initLocalBroadcaster();
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent){
+        if (Debug.InDebugging) {
+            Log.i("ServerService", "Application closed. Stop all Services");
+        }
+        stopServer();
+
+        stopSelf();
+    }
+
     public String indexToHTML(String ipAddress) {
         //Umwandeln von HTML zu String
         InputStream databaseInputStream = getResources().openRawResource(R.raw.index);
@@ -65,13 +75,10 @@ public class ServerService extends Service {
         try {
             while ((bytesRead = br.read(contents)) != -1) {
                 strFileContents = new String(contents, 0, bytesRead);
-                //System.out.println("Auf html parsen: " + strFileContents);
                 if (strFileContents.equals("%")) {
-                    //System.out.println("Erstes %");
                     if ((bytesRead = br.read(contents)) != -1) {
                         strFileContents = new String(contents, 0, bytesRead);
                         if (strFileContents.equals("%")) {
-                            System.out.println("Ersetzen durch ip adresse");
                             strFileContents = ipAddress + ":8887";
                         } else {
                             strFileContents = "%" + strFileContents;
@@ -90,7 +97,6 @@ public class ServerService extends Service {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(html);
         return html;
     }
 
@@ -181,13 +187,19 @@ public class ServerService extends Service {
         _httpServerActive = false;
 
         try {
-            System.out.println("Server stoppen");
+            if(Debug.InDebugging){
+                Log.i("ServerService", "Server stoppen");
+            }
             _webSocketServer.stop();
             _webSocketServer = null;
         } catch (IOException e) {
-
+            if(Debug.InDebugging){
+                Log.e("ServerService", "IOException bei WebSocket", e);
+            }
         } catch (InterruptedException e) {
-
+            if(Debug.InDebugging){
+                Log.e("ServerService", "InterrupException bei WebSocket", e);
+            }
         }
         WebSocketConnectionManager.clear();
 
