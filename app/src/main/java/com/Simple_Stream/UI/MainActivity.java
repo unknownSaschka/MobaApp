@@ -1,26 +1,17 @@
-package com.example.sascha.mobaapp;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
+package com.Simple_Stream.UI;
 
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.media.projection.MediaProjectionManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Parcelable;
-import android.os.PowerManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -41,9 +32,17 @@ import android.widget.TextView;
 import android.content.Intent;
 import android.widget.Toast;
 
+import com.Simple_Stream.Capturing.CaptureService;
+import com.Simple_Stream.Constants;
+import com.Simple_Stream.R;
+import com.Simple_Stream.HTTP_Server.ServerService;
+
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout _DrawerLayout;
+
     private boolean _IsHttpServerRunning_shadow = false;
+    private String _HttpServerPort_shadow = "" + Constants.DEFAULT_HTTP_SERVER_PORT;
+    private String _IpAddress_shadow = "";
 
     private LocalBroadcastManager _localBroadcaster;
     private BroadcastReceiver _localListener = new BroadcastReceiver() {
@@ -70,25 +69,27 @@ public class MainActivity extends AppCompatActivity {
 
         initDrawer();
 
+        initLocalBroadcaster();
+
         startService(new Intent(getApplicationContext(), ServerService.class));
         startService(new Intent(getApplicationContext(), CaptureService.class));
 
-        initLocalBroadcaster();
 
         requestIpUpdate();
+        requestPortUpdate();
 
         initStartButton();
     }
-    //TODO: integrate QR Code in ip change.
-    public void generateQR(String ip) {
+
+    public void generateQR() {
         ImageView qr = findViewById(R.id.QRImage);
 
-        QRGeneratorThread qrGenerator = new QRGeneratorThread(ip, qr, getApplicationContext());
+        QRGeneratorThread qrGenerator = new QRGeneratorThread(_IpAddress_shadow, _HttpServerPort_shadow, qr, getApplicationContext());
         qrGenerator.start();
     }
 
-    private void startHttpServer(){
-        if(_localBroadcaster != null){
+    private void startHttpServer() {
+        if (_localBroadcaster != null) {
             Intent toSend = new Intent(Constants.SERVER_HTTP_EVENT_NAME_COMMAND);
             toSend.putExtra(Constants.SERVER_HTTP_COMMAND, Constants.SERVER_HTTP_START);
             _localBroadcaster.sendBroadcast(toSend);
@@ -96,21 +97,21 @@ public class MainActivity extends AppCompatActivity {
         requestIpUpdate();
     }
 
-    private void stopHttpServer(){
-        if(_localBroadcaster != null){
+    private void stopHttpServer() {
+        if (_localBroadcaster != null) {
             Intent toSend = new Intent(Constants.SERVER_HTTP_EVENT_NAME_COMMAND);
             toSend.putExtra(Constants.SERVER_HTTP_COMMAND, Constants.SERVER_HTTP_STOP);
             _localBroadcaster.sendBroadcast(toSend);
         }
     }
 
-    private void initStartButton(){
+    private void initStartButton() {
         Button startButton = findViewById(R.id.buttonStart);
         startButton.setText(R.string.buttonStart);
         View.OnClickListener listenerToSet = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(MainActivity.this._IsHttpServerRunning_shadow) {
+                if (MainActivity.this._IsHttpServerRunning_shadow) {
                     Toast.makeText(MainActivity.this, "Server wird gestoppt", Toast.LENGTH_SHORT).show();
                     MainActivity.this.stopHttpServer();
                     MainActivity.this.stopCapturing();
@@ -124,8 +125,8 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(listenerToSet);
     }
 
-    private void stopCapturing(){
-        if(_localBroadcaster != null){
+    private void stopCapturing() {
+        if (_localBroadcaster != null) {
             Intent toSend = new Intent(Constants.CAPTURE_EVENT_NAME_COMMAND);
             toSend.putExtra(Constants.CAPTURE_COMMAND, Constants.CAPTURE_STOP);
             _localBroadcaster.sendBroadcast(toSend);
@@ -133,29 +134,31 @@ public class MainActivity extends AppCompatActivity {
         requestIpUpdate();
     }
 
-    public void resetImage(){
-        ImageView temp = findViewById(R.id.imageView);
+    public void resetImageAndQr() {
+        ImageView temp = findViewById(R.id.imagePreview);
+        temp.setImageBitmap(null);
+        temp = findViewById(R.id.QRImage);
         temp.setImageBitmap(null);
     }
 
-    private void updateDisplayedValuesOn(String ipAddress) {
+    private void updateDisplayedValuesOn() {
         TextView ipInfo = findViewById(R.id.yourIPText);
         ipInfo.setText(getString(R.string.ipInfoServerOn));
 
         TextView ipAddressText = findViewById(R.id.ipAddressTW);
-        String URI = ipAddress + ":" + Constants.HTTP_SERVER_PORT;
-        ipAddressText.setText(ipAddress + ":" + Constants.HTTP_SERVER_PORT);
+        String URI = _IpAddress_shadow + ":" + _HttpServerPort_shadow;
+        ipAddressText.setText(URI);
 
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStop);
     }
 
-    private void updateDisplayedValuesOff(String ipAddress) {
+    private void updateDisplayedValuesOff() {
         TextView ipInfo = findViewById(R.id.yourIPText);
         ipInfo.setText(R.string.ipInfoServerOff);
 
         TextView ipAddressText = findViewById(R.id.ipAddressTW);
-        ipAddressText.setText(ipAddress + "");
+        ipAddressText.setText(_IpAddress_shadow + "");
 
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStart);
@@ -172,8 +175,8 @@ public class MainActivity extends AppCompatActivity {
             Intent temp = new Intent(Constants.IP_REQUEST);
             _localBroadcaster.sendBroadcast(temp);
         } else {
-            if (Debug.InDebugging) {
-                Log.i("LocalBroadcast Main", "Illegal Stateacces");
+            if (Constants.InDebugging) {
+                Log.i("LocalBroadcast Main", "Illegal State access");
             }
         }
     }
@@ -182,25 +185,56 @@ public class MainActivity extends AppCompatActivity {
         String addr = rawIntent.getStringExtra(Constants.IP_ANSWER_ADDRESS);
         String isRunning = rawIntent.getStringExtra(Constants.IP_ANSWER_FLAG_RUN);
 
-        if(addr != null && isRunning != null){
-            if(isRunning == Constants.SERVER_HTTP_IS_RUNNING_TRUE){
+        if (addr != null && isRunning != null) {
+            _IpAddress_shadow = addr;
+            if (isRunning == Constants.SERVER_HTTP_IS_RUNNING_TRUE) {
                 _IsHttpServerRunning_shadow = true;
-                updateDisplayedValuesOn(addr);
-            }else if(isRunning == Constants.SERVER_HTTP_IS_RUNNING_FALSE){
+                updateDisplayedValuesOn();
+                generateQR();
+            } else if (isRunning == Constants.SERVER_HTTP_IS_RUNNING_FALSE) {
                 _IsHttpServerRunning_shadow = false;
-                updateDisplayedValuesOff(addr);
+                updateDisplayedValuesOff();
+                resetImageAndQr();
             }
         }
+    }
 
-        generateQR(addr);
+    /**
+     * Can only used if localBroadcastManager is active.
+     */
+    private void requestPortUpdate() {
+        if (_localBroadcaster != null) {
+            Intent temp = new Intent(Constants.IP_REQUEST);
+            _localBroadcaster.sendBroadcast(temp);
+        } else {
+            if (Constants.InDebugging) {
+                Log.i("LocalBroadcast Main", "Illegal State access");
+            }
+        }
+    }
+
+    private void handlePortChange(Intent rawIntent) {
+        String port = rawIntent.getStringExtra(Constants.SETTING_SERVER_PORT);
+        if (port != null) {
+            _HttpServerPort_shadow = port;
+            if (_IsHttpServerRunning_shadow) {
+                updateDisplayedValuesOn();
+            } else {
+                updateDisplayedValuesOff();
+            }
+        }
     }
 
     private void handleImageChange(Intent rawIntent) {
         byte[] data = rawIntent.getByteArrayExtra(Constants.IMAGE_DATA_NAME);
         if (data != null) {
-            Bitmap image = BitmapFactory.decodeByteArray(data, 0, data.length);
-            ImageView view = findViewById(R.id.imageView);
-            view.setImageBitmap(image);
+            if(_IsHttpServerRunning_shadow) {
+                Bitmap image = BitmapFactory.decodeByteArray(data, 0, data.length);
+                ImageView view = findViewById(R.id.imagePreview);
+                view.setImageBitmap(image);
+            }else{
+                resetImageAndQr();
+            }
         }
     }
 
@@ -219,6 +253,9 @@ public class MainActivity extends AppCompatActivity {
             case Constants.QR_CODE_EVENT:
                 setQRImage(rawIntent);
                 break;
+            case Constants.SETTING_INFO_EVENT:
+                handlePortChange(rawIntent);
+                break;
             default:
                 return;
         }
@@ -228,10 +265,11 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter toReturn = new IntentFilter(Constants.IMAGE_EVENT_NAME);
         toReturn.addAction(Constants.IP_ANSWER);
         toReturn.addAction(Constants.QR_CODE_EVENT);
+        toReturn.addAction(Constants.SETTING_INFO_EVENT);
         return toReturn;
     }
 
-    private synchronized void setQRImage(Intent data){
+    private synchronized void setQRImage(Intent data) {
         Parcelable p = data.getParcelableExtra(Constants.QR_CODE_DATA);
         Bitmap b = (Bitmap) p;
         ImageView imageView = findViewById(R.id.QRImage);
@@ -271,12 +309,12 @@ public class MainActivity extends AppCompatActivity {
     private void checkAndAskForInternetPermission() {
         //Prüfe auf Permissions für Internet
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("Main", "Keine Perms");
             }
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, Constants.INET_PERMS);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, Constants.INTERNET_PERMISSION);
         } else {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("Main", "Hat Perms");
             }
         }
@@ -286,28 +324,27 @@ public class MainActivity extends AppCompatActivity {
         MediaProjectionManager temp = null;
         //Result checking in callback methode onActivityResult()
         try {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.d("BeforeServiceStart", "Now trying to get Mediamanager.");
             }
             temp = (MediaProjectionManager) getSystemService(getApplicationContext().MEDIA_PROJECTION_SERVICE);
             startActivityForResult(temp.createScreenCaptureIntent(), Constants.REQUEST_CODE_SCREEN_CAPTURE);
         } catch (Exception ex) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.d("BeforeServiceStart", ex.getMessage());
             }
         }
     }
 
-    private void initLocalBroadcaster(){
-        if(_localBroadcaster == null) {
+    private void initLocalBroadcaster() {
+        if (_localBroadcaster == null) {
             _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
             _localBroadcaster.registerReceiver(_localListener, getIntentFilter());
-            requestIpUpdate();
         }
     }
 
-    private void cleanLocalBroadcaster(){
-        if(_localBroadcaster != null) {
+    private void cleanLocalBroadcaster() {
+        if (_localBroadcaster != null) {
             _localBroadcaster.unregisterReceiver(_localListener);
             _localBroadcaster = null;
         }
@@ -339,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                 toSend.putExtra(Constants.CAPTURE_MEDIA_GRANTING_TOKEN_INTENT, data);
                 _localBroadcaster.sendBroadcast(toSend);
             } else {
-                if (Debug.InDebugging) {
+                if (Constants.InDebugging) {
                     Log.d("BeforeServiceStarting", "Request failed.");
                 }
             }

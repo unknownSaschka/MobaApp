@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.Simple_Stream.Capturing;
 
 import android.app.Activity;
 import android.app.Service;
@@ -27,6 +27,8 @@ import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import com.Simple_Stream.Constants;
+
 public class CaptureService extends Service {
     private MediaProjection.Callback ProjectionCallback = new MediaProjection.Callback() {
         @Override
@@ -48,6 +50,9 @@ public class CaptureService extends Service {
         }
     };
 
+    private int _JPEGQuality_shadow = Constants.DEFAULT_JPEG_QUALI;
+    private float _ScalingFactor_shadow = Constants.DEFAULT_SCALING_FACTOR;
+
     //Image generation should run in an extra Thread.
     private HandlerThread _ImageThread = null;
     private Handler _ImageThreadHandler = null;
@@ -55,6 +60,7 @@ public class CaptureService extends Service {
     private int _Orientation = Configuration.ORIENTATION_UNDEFINED;
     private int _LastOrientation = Configuration.ORIENTATION_UNDEFINED;
     private OrientationEventListener _rotationListener;
+
     private boolean isInitialized = false;
     private boolean isCapturing = false;
 
@@ -82,8 +88,6 @@ public class CaptureService extends Service {
     }
 
     /**
-     * When you clean and init this service, the image listener stops working.
-     * It's a mystery for me. If you know why, contact me.
      * @param captureTokenIntent needs to get the granting Token Intent.
      */
     private synchronized void initService(Intent captureTokenIntent) {
@@ -99,21 +103,21 @@ public class CaptureService extends Service {
             }
         };
         _rotationListener.enable();
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("Service", "Capture Service starting");
         }
 
         _ScreenCapturer = ((MediaProjectionManager) getSystemService(getApplicationContext().MEDIA_PROJECTION_SERVICE)).getMediaProjection(Activity.RESULT_OK, captureTokenIntent);
         _ScreenCapturer.registerCallback(ProjectionCallback, new Handler(Looper.getMainLooper()));
         _ScreenToCapture = ((WindowManager) getSystemService(getApplicationContext().WINDOW_SERVICE)).getDefaultDisplay();
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("Service", "Booted Capturing.");
         }
 
         _ImageThread = new HandlerThread("ImageGenerator");
         _ImageThread.start();
         _ImageThreadHandler = new Handler(_ImageThread.getLooper());
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("Service", "Thread started.");
         }
         updateRotation();
@@ -126,7 +130,7 @@ public class CaptureService extends Service {
      */
     private synchronized void restartCapturing() {
         synchronized (this) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("CaptureService", "Restart");
             }
             stopCapturing();
@@ -157,11 +161,11 @@ public class CaptureService extends Service {
                         screenSize.x, screenSize.y,
                         metric.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION,
                         _ImageProcessor.getSurface(), null, _ImageThreadHandler);
-                if (Debug.InDebugging) {
+                if (Constants.InDebugging) {
                     Log.i("Service", "Created Virtual Display.");
                 }
             } catch (Exception e) {
-                if (Debug.InDebugging) {
+                if (Constants.InDebugging) {
                     Log.d("Service", "Could not create virtual display");
                 }
             }
@@ -192,7 +196,16 @@ public class CaptureService extends Service {
             _ImageThread.quit();
             _rotationListener.disable();
             isInitialized = false;
+            stopSelf();
         }
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent){
+        if (Constants.InDebugging) {
+            Log.i("CaptureService", "Application closed. Stopping myself");
+        }
+        cleanService();
     }
 
     /**
@@ -204,6 +217,14 @@ public class CaptureService extends Service {
         if (_localBroadcaster != null) {
             _localBroadcaster.sendBroadcast(intentToSend);
         }
+    }
+
+    public int get_JPEGQuality_shadow(){
+        return  _JPEGQuality_shadow;
+    }
+
+    public float get_ScalingFactor_shadow(){
+        return _ScalingFactor_shadow;
     }
 
     /**
@@ -252,6 +273,18 @@ public class CaptureService extends Service {
         }
     }
 
+    private void handleSettingsUpdate(Intent rawIntent){
+        int quali = rawIntent.getIntExtra(Constants.SETTING_JPEG_QUALI, -1);
+        float scale = rawIntent.getFloatExtra(Constants.SETTING_SCALE, -1f);
+
+        if(quali != -1){
+            _JPEGQuality_shadow = quali;
+        }
+        if(scale != -1f){
+            _ScalingFactor_shadow = scale;
+        }
+    }
+
     private void initLocalBroadcaster() {
         if (_localBroadcaster == null) {
             _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
@@ -268,6 +301,7 @@ public class CaptureService extends Service {
 
     private IntentFilter getIntentFilter() {
         IntentFilter toReturn = new IntentFilter(Constants.CAPTURE_EVENT_NAME_COMMAND);
+        toReturn.addAction(Constants.SETTING_INFO_EVENT);
         return toReturn;
     }
 
@@ -279,6 +313,9 @@ public class CaptureService extends Service {
         switch (action) {
             case Constants.CAPTURE_EVENT_NAME_COMMAND:
                 handleCommand(rawIntent);
+                break;
+            case Constants.SETTING_INFO_EVENT:
+                handleSettingsUpdate(rawIntent);
                 break;
             default:
                 return;

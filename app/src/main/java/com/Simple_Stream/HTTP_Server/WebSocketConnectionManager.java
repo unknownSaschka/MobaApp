@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.Simple_Stream.HTTP_Server;
 
 import org.java_websocket.WebSocket;
 

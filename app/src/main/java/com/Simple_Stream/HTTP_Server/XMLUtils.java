@@ -1,7 +1,9 @@
-package com.example.sascha.mobaapp;
+package com.Simple_Stream.HTTP_Server;
 
 import android.content.Context;
 import android.util.Log;
+
+import com.Simple_Stream.Constants;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,11 +14,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-public class XMLService {
+public class XMLUtils {
 
     Context context;
 
-    public XMLService(Context context){
+    public XMLUtils(Context context){
         this.context = context;
     }
 
@@ -36,8 +38,8 @@ public class XMLService {
     }
 
     private void createXML(String httpPort, String quality, String scale, File xml){
-        if(Debug.InDebugging){
-            Log.i("XMLService", "Create XML");
+        if(Constants.InDebugging){
+            Log.i("XMLUtils", "Create XML");
         }
 
         String toWrite = "";
@@ -89,8 +91,8 @@ public class XMLService {
             e.printStackTrace();
         }
 
-        if(Debug.InDebugging){
-            Log.i("XMLService", "HTTPPort: " + httpPort + " Quality: " + quality + " Scale: " + scale);
+        if(Constants.InDebugging){
+            Log.i("XMLUtils", "HTTPPort: " + httpPort + " Quality: " + quality + " Scale: " + scale);
         }
     }
 }

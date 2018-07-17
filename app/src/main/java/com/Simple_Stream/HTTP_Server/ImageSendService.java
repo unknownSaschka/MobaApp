@@ -1,4 +1,4 @@
-package com.example.sascha.mobaapp;
+package com.Simple_Stream.HTTP_Server;
 
 
 import android.content.BroadcastReceiver;
@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import com.Simple_Stream.Constants;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -36,7 +38,7 @@ public class ImageSendService extends WebSocketServer {
     public ImageSendService(InetSocketAddress address, Context appContext) {
         super(address);
         setReuseAddr(true);
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("Server", "Starte WebSocket Server");
         }
         WebSocketConnectionManager.clear();
@@ -59,14 +61,14 @@ public class ImageSendService extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("ImageSendService", message);
         }
     }
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.e("ImageSendService", "SocketFehler", ex);
         }
 
@@ -74,7 +76,7 @@ public class ImageSendService extends WebSocketServer {
 
     @Override
     public void onStart() {
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("ImageSendService", "SocketServer gestartet");
         }
     }
@@ -95,7 +97,7 @@ public class ImageSendService extends WebSocketServer {
     public void stop() throws IOException, InterruptedException {
         super.stop();
         _localBroadcaster.unregisterReceiver(_localListener);
-        if (Debug.InDebugging) {
+        if (Constants.InDebugging) {
             Log.i("ImageSendService", "SocketServer stoppen");
         }
     }
