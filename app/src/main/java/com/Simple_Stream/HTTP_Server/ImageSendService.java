@@ -52,11 +52,13 @@ public class ImageSendService extends WebSocketServer {
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         Log.i("ImageSendService", "Öffnen");
         WebSocketConnectionManager.addSession(conn);
+        sendClientAmount();
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         WebSocketConnectionManager.removeSession(conn);
+        sendClientAmount();
     }
 
     @Override
@@ -71,7 +73,7 @@ public class ImageSendService extends WebSocketServer {
         if (Constants.InDebugging) {
             Log.e("ImageSendService", "SocketFehler", ex);
         }
-
+        sendClientAmount();
     }
 
     @Override
@@ -79,6 +81,7 @@ public class ImageSendService extends WebSocketServer {
         if (Constants.InDebugging) {
             Log.i("ImageSendService", "SocketServer gestartet");
         }
+        sendClientAmount();
     }
 
     public synchronized void sendImage(byte[] image, int width, int height) {
@@ -100,5 +103,15 @@ public class ImageSendService extends WebSocketServer {
         if (Constants.InDebugging) {
             Log.i("ImageSendService", "SocketServer stoppen");
         }
+        sendClientAmount();
+    }
+
+    private void sendClientAmount(){
+
+        int amount = WebSocketConnectionManager.socketliste.size();
+        Log.i("WenSocketService", "SendeClientZahl " + amount);
+        Intent toSend = new Intent(Constants.CLIENT_CONNECTED_EVENT);
+        toSend.putExtra(Constants.CLIENT_AMOUNT, amount);
+        _localBroadcaster.sendBroadcast(toSend);
     }
 }

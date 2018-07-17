@@ -168,13 +168,13 @@
 
         <TextView
             android:id="@+id/settingScaleInfo"
-            android:layout_width="69dp"
-            android:layout_height="25dp"
+            android:layout_width="200dp"
+            android:layout_height="24dp"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:text="@string/scalingInfo"
-            app:layout_constraintEnd_toStartOf="@+id/scaleSettingValue"
-            app:layout_constraintHorizontal_bias="0.18"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.22"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/scalingTextView" />
 

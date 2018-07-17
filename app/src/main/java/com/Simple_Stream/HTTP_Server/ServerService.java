@@ -32,7 +32,7 @@ public class ServerService extends Service {
             handleLocalBroadcast(intent);
         }
     };
-
+    private int _httpServerPort = Constants.DEFAULT_HTTP_SERVER_PORT;
     private String _ipAddress;
     private InetSocketAddress _socketAddress;
     private boolean _httpServerActive = false;
@@ -53,10 +53,9 @@ public class ServerService extends Service {
 
     @Override
     public void onCreate() {
-        _ipAddress = getIpAddr();
         initLocalBroadcaster();
+        _ipAddress = getIpAddr();
         handleIpRequest();
-        handleXML();
     }
 
     @Override
@@ -64,8 +63,8 @@ public class ServerService extends Service {
         if (Constants.InDebugging) {
             Log.i("ServerService", "Application closed. Stop all Services");
         }
-        stopServer();
-
+        stopHttpServer();
+        stopWebSocketServer();
         stopSelf();
     }
 
@@ -142,7 +141,8 @@ public class ServerService extends Service {
         return _ipAddress;
     }
 
-    public synchronized void startServer() {
+    public synchronized void startHttpServer() {
+        //_localBroadcaster.sendBroadcast(new Intent(Constants.SETTING_REQUEST));
         if(_httpServerActive){
             return;
         }
@@ -150,7 +150,10 @@ public class ServerService extends Service {
         _ipAddress = getIpAddr();
         _httpSocket = null;
         try {
-            _httpSocket = new ServerSocket(Constants.DEFAULT_HTTP_SERVER_PORT);
+            if (Constants.InDebugging) {
+                Log.d("HttpServer", "Starte HTTPServer mit Port: " + _httpServerPort);
+            }
+            _httpSocket = new ServerSocket(_httpServerPort);
         } catch (Exception e) {
             if (Constants.InDebugging) {
                 Log.d("HttpServer", "Could not Start.");
@@ -164,18 +167,9 @@ public class ServerService extends Service {
         _serverThread.setName("Http_Server");
         _serverThread.start();
         _httpServerActive = true;
-
-        if (_socketAddress != null) {
-            _webSocketServer = new ImageSendService(_socketAddress, getApplicationContext());
-            _webSocketServer.start();
-        } else {
-            if (Constants.InDebugging) {
-                Log.e("Get IPadr", "Error by activeInetAddress");
-            }
-        }
     }
 
-    public synchronized void stopServer() {
+    public synchronized void stopHttpServer() {
         if(!_httpServerActive){
             return;
         }
@@ -186,7 +180,20 @@ public class ServerService extends Service {
             e.printStackTrace();
         }
         _httpServerActive = false;
+    }
 
+    public void startWebSocketServer(){
+        if (_socketAddress != null) {
+            _webSocketServer = new ImageSendService(_socketAddress, getApplicationContext());
+            _webSocketServer.start();
+        } else {
+            if (Constants.InDebugging) {
+                Log.e("Get IPadr", "Error by activeInetAddress");
+            }
+        }
+    }
+
+    public void stopWebSocketServer(){
         try {
             if(Constants.InDebugging){
                 Log.i("ServerService", "Server stoppen");
@@ -201,6 +208,8 @@ public class ServerService extends Service {
             if(Constants.InDebugging){
                 Log.e("ServerService", "InterrupException bei WebSocket", e);
             }
+        } catch (NullPointerException n){
+
         }
         WebSocketConnectionManager.clear();
     }
@@ -209,7 +218,8 @@ public class ServerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         cleanLocalBroadcaster();
-        stopServer();
+        stopHttpServer();
+        stopWebSocketServer();
         if (_httpSocket != null) {
             try {
                 _httpSocket.close();
@@ -236,6 +246,8 @@ public class ServerService extends Service {
     private IntentFilter getIntentFilter() {
         IntentFilter toReturn = new IntentFilter(Constants.SERVER_HTTP_EVENT_NAME_COMMAND);
         toReturn.addAction(Constants.IP_REQUEST);
+        toReturn.addAction(Constants.SETTING_CHANGED_EVENT);
+        toReturn.addAction(Constants.SETTING_INFO_EVENT);
         return toReturn;
     }
 
@@ -251,6 +263,11 @@ public class ServerService extends Service {
             case Constants.SERVER_HTTP_EVENT_NAME_COMMAND:
                 handleCommand(rawIntent);
                 break;
+            case Constants.SETTING_INFO_EVENT:
+                setHttpPort(rawIntent);
+                break;
+            case Constants.SETTING_CHANGED_EVENT:
+                handleSettingsChanged(rawIntent);
             default:
                 return;
         }
@@ -272,18 +289,31 @@ public class ServerService extends Service {
 
         switch (command) {
             case Constants.SERVER_HTTP_START:
-                startServer();
+                startHttpServer();
+                startWebSocketServer();
                 break;
             case Constants.SERVER_HTTP_STOP:
-                stopServer();
+                stopHttpServer();
+                stopWebSocketServer();
                 break;
             default:
                 return;
         }
     }
 
-    public void handleXML(){
-        XMLUtils xml = new XMLUtils(getApplicationContext());
-        xml.handleXML();
+    private void handleSettingsChanged(Intent rawIntent){
+        _httpServerPort = rawIntent.getIntExtra(Constants.SETTING_SERVER_PORT, -1);
+        if(Constants.InDebugging){
+            Log.i("ServerServiceHTTP", "Hat NEUEN ServerPort bekommen: " + _httpServerPort);
+        }
+        stopHttpServer();
+        startHttpServer();
+    }
+
+    private void setHttpPort(Intent rawIntent){
+        _httpServerPort = rawIntent.getIntExtra(Constants.SETTING_SERVER_PORT, -1);
+        if(Constants.InDebugging){
+            Log.i("ServerServiceHTTP", "Hat ServerPort bekommen: " + _httpServerPort);
+        }
     }
 }
