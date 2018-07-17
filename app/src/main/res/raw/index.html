@@ -2,40 +2,28 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
-    <script src="https://rtcmulticonnection.herokuapp.com/dist/RTCMultiConnection.min.js"></script>
-    <script src="https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"></script>
 </head>
 <body>
     <style>
         body {
             background-color: #40444c;
         }
+        img{
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
     <script>
          document.addEventListener('DOMContentLoaded', init, false);
          var socket;
          function init(){
-
-            /*
-            var connection = new RTCMultiConnection();
-            connection.socketURL = '224.0.2.24';
-            */
-
-            var temp = window.document.getElementById("testbutton");
-            temp.addEventListener("click", sendPing, false);
-
-
             var url = 'ws://%%';
 	        socket = new WebSocket(url);
 	        socket.onopen=sendenMoeglich;
 	        socket.onclose=Closing;
 	        socket.onerror=ErrorHandler;
 	        socket.onmessage=empfange;
-
-         }
-
-         function sendPing(){
-            socket.send("Ping");
          }
 
          function ErrorHandler(event){
@@ -43,17 +31,39 @@
          }
 
          function empfange(message){
-                console.log(message);
+                //console.log(message);
                 var img = message.data;
 
                 if(img instanceof Blob){
-                    //var blob = new Blob(message.data, { type: "image/jpeg" } );
                     var urlCreator = window.URL || window.webkitURL;
                     var imageUrl = urlCreator.createObjectURL(img);
-                    document.getElementById("stream").src = imageUrl;
+                    var imgCon = document.getElementById("stream");
+                    imgCon.src = imageUrl;
                 }
                 else {
                     console.log(message.data);
+                    var json = JSON.parse(img);
+                    var height = json.height;
+                    var width = json.width;
+                    console.log("breite: " + width + " hoehe: " + height);
+                    var imgCon = document.getElementById("stream");
+                    var ratio = width / height;
+
+                    //Portrait mode
+                    if(width < height){
+                        imgCon.height = window.innerHeight - 10;
+                        imgCon.width = (window.innerHeight - 10) * ratio;
+                    }
+                    else {
+                        if(((window.innerWidth - 10) / ratio) > (window.innerHeight - 10)){
+                            imgCon.height = window.innerHeight - 10;
+                            imgCon.width = (window.innerHeight - 10) * ratio;
+                        }
+                        else {
+                            imgCon.width = window.innerWidth - 10;
+                            imgCon.height = (window.innerWidth - 10) / ratio;
+                        }
+                    }
                 }
          }
 
@@ -65,8 +75,6 @@
 
          }
     </script>
-    <h1>Neuer Test</h1>
-    <button id="testbutton">Der Testbutton</button>
-    <img id="stream" height="800" width="1200"/>
+    <img id="stream" height="1920" width="1080"/>
 </body>
 </html>

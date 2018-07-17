@@ -1,7 +1,9 @@
-package com.example.sascha.mobaapp;
+package com.Simple_Stream.HTTP_Server;
 
 
 import android.util.Log;
+
+import com.Simple_Stream.Constants;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -22,10 +24,13 @@ public class ServerThread extends Thread {
         Socket socket = null;
         try {
             while (true) {
-                if (Debug.InDebugging) {
+                if (Constants.InDebugging) {
                     Log.i("ServerThread", "Wartet...");
                 }
                 socket = httpSocket.accept();
+                if (Constants.InDebugging) {
+                    Log.i("ServerThread", "Neuer Client");
+                }
                 if (socket == null || httpSocket == null) {
                     return;
                 }
@@ -34,7 +39,7 @@ public class ServerThread extends Thread {
             }
 
         } catch (Exception e) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("ServerThread", "In der Exception");
             }
             closeServer(socket);
@@ -49,11 +54,11 @@ public class ServerThread extends Thread {
             if (socket.getInputStream() != null) {
                 socket.shutdownInput();
             }
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("ServerThread", "Server wurde geschlossen");
             }
         } catch (Exception e) {
-            if (Debug.InDebugging) {
+            if (Constants.InDebugging) {
                 Log.i("ServerThread", "Server wurde durch Exception geschlossen");
             }
         }
