@@ -1,4 +1,4 @@
-package com.Simple_Stream.HTTP_Server;
+package com.Simple_Stream.Settings;
 
 import android.content.Context;
 import android.util.Log;
@@ -13,31 +13,34 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class XMLUtils {
 
     Context context;
+    File xml;
 
     public XMLUtils(Context context){
         this.context = context;
     }
 
-    public void handleXML(){
+    public String[] getXMLSettings(){
 
-        File xml = new File(context.getFilesDir(), Constants.XML_Filename);
+        xml = new File(context.getFilesDir(), Constants.XML_Filename);
         if(!xml.exists()){
             try {
                 xml.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            createXML(null, null,null, xml);
+            createXML(null, null,null);
         }
 
-        readXML(xml);
+        return readXML(xml);
     }
 
-    private void createXML(String httpPort, String quality, String scale, File xml){
+    public synchronized void createXML(String httpPort, String quality, String scale){
         if(Constants.InDebugging){
             Log.i("XMLUtils", "Create XML");
         }
@@ -56,7 +59,7 @@ public class XMLUtils {
             toWrite += quality + "\n";
         }
         if(scale == null){
-            toWrite += "50" + "\n";
+            toWrite += "0.5" + "\n";
         }
         else{
             toWrite += scale + "\n";
@@ -74,7 +77,7 @@ public class XMLUtils {
         }
     }
 
-    private void readXML(File xml){
+    private String[] readXML(File xml){
         String httpPort = null;
         String quality = null;
         String scale = null;
@@ -94,5 +97,12 @@ public class XMLUtils {
         if(Constants.InDebugging){
             Log.i("XMLUtils", "HTTPPort: " + httpPort + " Quality: " + quality + " Scale: " + scale);
         }
+
+        String[] ret  = new String[3];
+        ret[0] = httpPort;
+        ret[1] = quality;
+        ret[2] = scale;
+
+        return ret;
     }
 }

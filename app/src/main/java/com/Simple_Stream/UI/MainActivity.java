@@ -12,6 +12,8 @@ import android.graphics.BitmapFactory;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Parcelable;
+import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -36,6 +38,7 @@ import com.Simple_Stream.Capturing.CaptureService;
 import com.Simple_Stream.Constants;
 import com.Simple_Stream.R;
 import com.Simple_Stream.HTTP_Server.ServerService;
+import com.Simple_Stream.Settings.SettingsService;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout _DrawerLayout;
@@ -72,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
         initLocalBroadcaster();
 
         startService(new Intent(getApplicationContext(), ServerService.class));
+        startService(new Intent(getApplicationContext(), SettingsService.class));
         startService(new Intent(getApplicationContext(), CaptureService.class));
-
 
         requestIpUpdate();
         requestPortUpdate();
@@ -151,6 +154,8 @@ public class MainActivity extends AppCompatActivity {
 
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStop);
+
+        generateQR();
     }
 
     private void updateDisplayedValuesOff() {
@@ -163,8 +168,7 @@ public class MainActivity extends AppCompatActivity {
         Button button = findViewById(R.id.buttonStart);
         button.setText(R.string.buttonStart);
 
-        ImageView qr = (ImageView) findViewById(R.id.QRImage);
-        qr.setImageDrawable(null);
+        resetImageAndQr();
     }
 
     /**
@@ -190,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
             if (isRunning == Constants.SERVER_HTTP_IS_RUNNING_TRUE) {
                 _IsHttpServerRunning_shadow = true;
                 updateDisplayedValuesOn();
-                generateQR();
             } else if (isRunning == Constants.SERVER_HTTP_IS_RUNNING_FALSE) {
                 _IsHttpServerRunning_shadow = false;
                 updateDisplayedValuesOff();
@@ -204,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void requestPortUpdate() {
         if (_localBroadcaster != null) {
-            Intent temp = new Intent(Constants.IP_REQUEST);
+            Intent temp = new Intent(Constants.SETTING_REQUEST);
             _localBroadcaster.sendBroadcast(temp);
         } else {
             if (Constants.InDebugging) {
@@ -214,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handlePortChange(Intent rawIntent) {
-        String port = rawIntent.getStringExtra(Constants.SETTING_SERVER_PORT);
-        if (port != null) {
+        String port = String.valueOf(rawIntent.getIntExtra(Constants.SETTING_SERVER_PORT, -1));
+        if (port != null && port != _HttpServerPort_shadow) {
             _HttpServerPort_shadow = port;
             if (_IsHttpServerRunning_shadow) {
                 updateDisplayedValuesOn();
@@ -256,6 +259,12 @@ public class MainActivity extends AppCompatActivity {
             case Constants.SETTING_INFO_EVENT:
                 handlePortChange(rawIntent);
                 break;
+            case Constants.SETTING_CHANGED_EVENT:
+                handlePortChange(rawIntent);
+                break;
+            case Constants.CLIENT_CONNECTED_EVENT:
+                updateConnectedClients(rawIntent);
+                break;
             default:
                 return;
         }
@@ -266,6 +275,8 @@ public class MainActivity extends AppCompatActivity {
         toReturn.addAction(Constants.IP_ANSWER);
         toReturn.addAction(Constants.QR_CODE_EVENT);
         toReturn.addAction(Constants.SETTING_INFO_EVENT);
+        toReturn.addAction(Constants.SETTING_CHANGED_EVENT);
+        toReturn.addAction(Constants.CLIENT_CONNECTED_EVENT);
         return toReturn;
     }
 
@@ -336,6 +347,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void updateConnectedClients(Intent intent){
+        Log.i("MainActivity", "UpdateClientAnzahl");
+        TextView tv = findViewById(R.id.connectedClients);
+        int amount = intent.getIntExtra(Constants.CLIENT_AMOUNT, -1);
+        String temp = getString(R.string.connected_clients) + " " + amount;
+        tv.setText(temp);
+    }
+
     private void initLocalBroadcaster() {
         if (_localBroadcaster == null) {
             _localBroadcaster = LocalBroadcastManager.getInstance(getApplicationContext());
@@ -356,14 +375,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+        super.onCreate(savedInstanceState, persistentState);
         initLocalBroadcaster();
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroy() {
+        super.onDestroy();
         cleanLocalBroadcaster();
     }
 

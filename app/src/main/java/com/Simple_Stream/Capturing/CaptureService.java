@@ -192,10 +192,13 @@ public class CaptureService extends Service {
      */
     private synchronized void cleanService() {
         synchronized (this) {
-            stopCapturing();
-            _ImageThread.quit();
-            _rotationListener.disable();
-            isInitialized = false;
+            try {
+                stopCapturing();
+                _ImageThread.quit();
+                _rotationListener.disable();
+                isInitialized = false;
+            }catch(NullPointerException e){
+            }
             stopSelf();
         }
     }
@@ -302,6 +305,7 @@ public class CaptureService extends Service {
     private IntentFilter getIntentFilter() {
         IntentFilter toReturn = new IntentFilter(Constants.CAPTURE_EVENT_NAME_COMMAND);
         toReturn.addAction(Constants.SETTING_INFO_EVENT);
+        toReturn.addAction(Constants.SETTING_CHANGED_EVENT);
         return toReturn;
     }
 
@@ -315,6 +319,9 @@ public class CaptureService extends Service {
                 handleCommand(rawIntent);
                 break;
             case Constants.SETTING_INFO_EVENT:
+                handleSettingsUpdate(rawIntent);
+                break;
+            case Constants.SETTING_CHANGED_EVENT:
                 handleSettingsUpdate(rawIntent);
                 break;
             default:

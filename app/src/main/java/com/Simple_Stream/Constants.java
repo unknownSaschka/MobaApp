@@ -53,8 +53,13 @@ public abstract class Constants {
     //Used for Setting broadcasting
     public static final String SETTING_REQUEST = "setting.request";
     public static final String SETTING_INFO_EVENT = "setting.info.event";
+    public static final String SETTING_CHANGED_EVENT = "setting.change.event";
     public static final String SETTING_SERVER_PORT = "setting.server.port";
     public static final String SETTING_JPEG_QUALI = "setting.quali";
     public static final String SETTING_SCALE = "setting.scale";
+
+    //Used for Transmission of connected Clients
+    public static final String CLIENT_CONNECTED_EVENT = "cleint.connected.event";
+    public static final String CLIENT_AMOUNT = "client.amount";
 
 }

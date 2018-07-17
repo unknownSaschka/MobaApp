@@ -17,5 +17,6 @@
     <string name="drawerHome">Home</string>
     <string name="drawerSettings">Einstellungen</string>
     <string name="scalingSetting">Skalierung</string>
-    <string name="scalingInfo">(in %)</string>
+    <string name="scalingInfo">(zwischen 0.5 und 1.5)</string>
+    <string name="connected_clients">Anzahl der Zuschauer:</string>
 </resources>
