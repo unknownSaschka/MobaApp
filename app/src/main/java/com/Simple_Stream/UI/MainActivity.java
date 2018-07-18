@@ -37,7 +37,7 @@ import android.widget.Toast;
 import com.Simple_Stream.Capturing.CaptureService;
 import com.Simple_Stream.Constants;
 import com.Simple_Stream.R;
-import com.Simple_Stream.HTTP_Server.ServerService;
+import com.Simple_Stream.Servers.ServerService;
 import com.Simple_Stream.Settings.SettingsService;
 
 public class MainActivity extends AppCompatActivity {
