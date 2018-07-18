@@ -38,7 +38,7 @@
             android:exported="false" />
 
         <service
-            android:name=".HTTP_Server.ServerService"
+            android:name=".Servers.ServerService"
             android:stopWithTask="false"
             android:exported="false" />
 
